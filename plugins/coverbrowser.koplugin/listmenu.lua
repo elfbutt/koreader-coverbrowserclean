@@ -314,8 +314,7 @@ function ListMenuItem:update()
         local wleft_width = dimen.w - folder_cover.width - wright_width - 3 * pad_width
         local wlefttext = BD.directory(self.text:sub(1, -2))
 
-        -- local folderfont = good_serif
-        local folderfont = good_sans
+        local folderfont = good_serif
 
         --if (self.title_bar and string.starts(self.title_bar.title, "Long-press to choose")) or
         --        (self.menu and string.starts(self.menu.title, "Long-press to choose")) then
@@ -388,9 +387,9 @@ function ListMenuItem:update()
             local wleft_width = 0 -- if not do_cover_image
             local wleft_height
             if self.do_cover_image then
-                wleft_height = dimen.h
-                wleft_width = wleft_height -- make it squared
                 if bookinfo.has_cover and not bookinfo.ignore_cover then
+                    wleft_height = dimen.h
+                    wleft_width = wleft_height -- make it squared
                     cover_bb_used = true
                     -- Let ImageWidget do the scaling and give us the final size
                     local _, _, scale_factor = BookInfoManager.getCachedCoverSize(bookinfo.cover_w, bookinfo.cover_h, max_img_w, max_img_h)
@@ -416,8 +415,10 @@ function ListMenuItem:update()
                     -- Let menu know it has some item with images
                     self.menu._has_cover_images = true
                     self._has_cover_image = true
-                else
+                elseif is_pathchooser == false then
                     -- use generic file icon insteaed of cover image
+                    wleft_height = dimen.h
+                    wleft_width = wleft_height -- make it squared
                     cover_bb_used = true
                     -- Let ImageWidget do the scaling and give us the final size
                     local _, _, scale_factor = BookInfoManager.getCachedCoverSize(250, 500, max_img_w, max_img_h)
@@ -799,9 +800,13 @@ function ListMenuItem:update()
                 -- We provide the book language to get a chance to render title
                 -- and authors with alternate glyphs for that language.
 
-                if authors == nil then
+                if bookinfo.unsupported or bookinfo._no_provider or not bookinfo.authors then
                     fontname_title = good_serif
                     bold_title = true
+                end
+                if is_pathchooser and not bookinfo.authors then
+                    fontname_title = good_sans
+                    bold_title = false
                 end
                 wtitle = TextBoxWidget:new {
                     text = title,

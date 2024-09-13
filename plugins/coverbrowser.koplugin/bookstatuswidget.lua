@@ -41,9 +41,9 @@ function AltBookStatusWidget:getStatusContent(width)
         align = "left",
         title_bar,
         self:genBookInfoGroup(),
-        self:genHeader(_("Progress")),
+        self:genHeader("Progress"),
         self:genStatisticsGroup(width),
-        self:genHeader(_("Description")),
+        self:genHeader("Description"),
         self:genSummaryGroup(width),
     }
     return content
@@ -94,12 +94,13 @@ function AltBookStatusWidget:genHeader(title)
         span_bottom,
     }
 end
+
 function AltBookStatusWidget:genBookInfoGroup()
     self.small_font_face = Font:getFace("source/SourceSerif4-Regular.ttf", 18)
     self.medium_font_face = Font:getFace("source/SourceSerif4-Regular.ttf", 22)
     self.large_font_face = Font:getFace("source/SourceSerif4-BoldIt.ttf", 30)
     self.padding = Screen:getSize().w * 0.03
-    
+
     local screen_width = Screen:getWidth()
     local split_span_width = math.floor(screen_width * 0.05)
 
@@ -251,6 +252,7 @@ function AltBookStatusWidget:genBookInfoGroup()
         book_info_group,
     }
 end
+
 function AltBookStatusWidget:genSummaryGroup(width)
     local height
     if Screen:getScreenMode() == "landscape" then

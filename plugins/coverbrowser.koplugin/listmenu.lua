@@ -698,7 +698,7 @@ function ListMenuItem:update()
 
             -- Build the middle main widget, in the space available
             local wmain_left_padding = Screen:scaleBySize(10)
-            if self.do_cover_image then
+            if self.do_cover_image and is_pathchooser == false then
                 -- we need less padding, as cover image, most often in
                 -- portrait mode, will provide some padding
                 wmain_left_padding = Screen:scaleBySize(5)

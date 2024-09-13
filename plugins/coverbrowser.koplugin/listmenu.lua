@@ -238,6 +238,12 @@ function ListMenuItem:update()
         self.menu.cover_specs = false
     end
 
+    is_pathchooser = false
+    if (self.title_bar and string.starts(self.title_bar.title, "Long-press to choose")) or
+            (self.menu and string.starts(self.menu.title, "Long-press to choose")) then
+        is_pathchooser = true
+    end
+
     self.is_directory = not (self.entry.is_file or self.entry.file)
     if self.is_directory then
         -- nb items on the right, directory name on the left
@@ -308,14 +314,19 @@ function ListMenuItem:update()
         local wleft_width = dimen.w - folder_cover.width - wright_width - 3 * pad_width
         local wlefttext = BD.directory(self.text:sub(1, -2))
 
-        if (self.title_bar and string.starts(self.title_bar.title, "Long-press to choose")) or
-                (self.menu and string.starts(self.menu.title, "Long-press to choose")) then
+        -- local folderfont = good_serif
+        local folderfont = good_sans
+
+        --if (self.title_bar and string.starts(self.title_bar.title, "Long-press to choose")) or
+        --        (self.menu and string.starts(self.menu.title, "Long-press to choose")) then
+        if is_pathchooser then
             wlefttext = BD.directory(self.text)
+            folderfont = good_sans
         end
 
         local wleft = TextBoxWidget:new {
             text = wlefttext,
-            face = Font:getFace(good_serif, _fontSize(22, 22)),
+            face = Font:getFace(folderfont, _fontSize(22, 22)),
             width = wleft_width,
             alignment = "left",
             bold = false,
@@ -1179,7 +1190,7 @@ function ListMenu:_recalculateDimen()
     self.page_num = math.ceil(#self.item_table / self.perpage)
     -- fix current page if out of range
     if self.page_num > 0 and self.page > self.page_num
-    then 
+    then
         self.page = self.page_num
     end
 

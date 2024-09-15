@@ -686,7 +686,8 @@ end
 function CoverMenu:menuInit()
     CoverMenu._Menu_init_orig(self)
 
-    local pagination_width = self.page_info:getSize().w
+    -- create footer items
+    local pagination_width = self.page_info:getSize().w -- get width before changing anything
     self.page_info = HorizontalGroup:new{
         self.page_info_first_chev,
         self.page_info_left_chev,
@@ -694,26 +695,22 @@ function CoverMenu:menuInit()
         self.page_info_right_chev,
         self.page_info_last_chev,
     }
-
     local page_info_container = RightContainer:new{
         dimen = Geom:new{
-            w = self.screen_w * 0.98,
+            w = self.screen_w * 0.98, -- 98% instead of 94% here due to whitespace on chevrons
             h = self.page_info:getSize().h,
         },
         self.page_info,
     }
-
     self.cur_folder_text = TextWidget:new{
         text = self.path,
         face = Font:getFace(good_serif, 20),
         max_width = self.screen_w * 0.94 - pagination_width,
         truncate_with_ellipsis = true,
     }
-
     local cur_folder = HorizontalGroup:new{
         self.cur_folder_text,
     }
-
     local cur_folder_container = LeftContainer:new{
         dimen = Geom:new{
             w = self.screen_w * 0.94,
@@ -721,17 +718,14 @@ function CoverMenu:menuInit()
         },
         cur_folder,
     }
-
     local footer_left = BottomContainer:new{
         dimen = self.inner_dimen:copy(),
         cur_folder_container
     }
-
     local footer_right = BottomContainer:new{
         dimen = self.inner_dimen:copy(),
         page_info_container
     }
-
     local page_return = BottomContainer:new{
         dimen = self.inner_dimen:copy(),
         WidgetContainer:new{
@@ -743,8 +737,7 @@ function CoverMenu:menuInit()
             self.return_button,
         }
     }
-
-    local footer_line = BottomContainer:new{
+    local footer_line = BottomContainer:new{ -- line to separate footer from content above
         dimen = Geom:new{
             x = 0, y = 0,
             w = self.inner_dimen.w,
@@ -770,7 +763,6 @@ function CoverMenu:menuInit()
         footer_right,
         footer_line,
     }
-
     self[1] = FrameContainer:new{
         background = Blitbuffer.COLOR_WHITE,
         padding = 0,
@@ -780,6 +772,7 @@ function CoverMenu:menuInit()
         content
     }
 
+    -- set and update pathchooser status
     is_pathchooser = false
     if string.starts(self.title_bar.title, "Long-press to choose") then
         is_pathchooser = true
@@ -796,15 +789,18 @@ end
 
 function CoverMenu:updatePageInfo(select_number)
     CoverMenu._Menu_updatePageInfo_orig(self, select_number)
+    -- slim down text to just "X of Y" numbers
     local no_page_text = string.gsub(self.page_info_text.text, "Page ", "")
     self.page_info_text:setText(no_page_text)
 
+    -- test to see what items to draw (pathchooser vs "detailed list view mode")
     if not is_pathchooser then
         if self.cur_folder_text and self.path then
             self.cur_folder_text:setMaxWidth(self.screen_w * 0.94 - self.page_info:getSize().w)
             if self.path == G_reader_settings:readSetting("home_dir") then
                 self.cur_folder_text:setText("Home")
             else
+                -- show only the current folder name, not the whole path
                 local crumbs = {}
                 for crumb in string.gmatch(self.path, "[^/]+") do
                     table.insert(crumbs, crumb)

@@ -616,21 +616,12 @@ function MosaicMenuItem:update()
                     else
                         bookinfo.series = BD.auto(bookinfo.series)
                     end
-                    if series_mode == "append_series_to_title" then
-                        if bookinfo.title then
-                            title_add = " - " .. bookinfo.series
-                        else
-                            title_add = bookinfo.series
-                        end
-                    end
                     if not bookinfo.authors then
-                        if series_mode == "append_series_to_authors" or series_mode == "series_in_separate_line" then
+                        if series_mode == "series_in_separate_line" then
                             authors_add = bookinfo.series
                         end
                     else
-                        if series_mode == "append_series_to_authors" then
-                            authors_add = " - " .. bookinfo.series
-                        elseif series_mode == "series_in_separate_line" then
+                        if series_mode == "series_in_separate_line" then
                             authors_add = "\n \n" .. bookinfo.series
                         end
                     end

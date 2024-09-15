@@ -23,6 +23,8 @@ local _ = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 
+local BookInfoManager = require("bookinfomanager")
+
 local function findLast(haystack, needle)
     local i = haystack:match(".*" .. needle .. "()")
     if i == nil then return nil else return i - 1 end
@@ -96,9 +98,12 @@ function AltBookStatusWidget:genHeader(title)
 end
 
 function AltBookStatusWidget:genBookInfoGroup()
+    -- declare 3 fonts included with our plugin
     self.small_font_face = Font:getFace("source/SourceSerif4-Regular.ttf", 18)
     self.medium_font_face = Font:getFace("source/SourceSerif4-Regular.ttf", 22)
     self.large_font_face = Font:getFace("source/SourceSerif4-BoldIt.ttf", 30)
+
+    -- padding at 3% per side to match the 94% total width used in listview
     self.padding = Screen:getSize().w * 0.03
 
     local screen_width = Screen:getWidth()
@@ -119,6 +124,7 @@ function AltBookStatusWidget:genBookInfoGroup()
     -- Get a chance to have title and authors rendered with alternate
     -- glyphs for the book language
     local lang = self.props.language
+
     -- title
     local book_meta_info_group = VerticalGroup:new{
         align = "center",
@@ -131,7 +137,8 @@ function AltBookStatusWidget:genBookInfoGroup()
             alignment = "center",
         },
     }
-    -- series and author
+
+    -- author(s)
     local author_block
     local author = ""
     if self.props.authors then
@@ -149,15 +156,18 @@ function AltBookStatusWidget:genBookInfoGroup()
             author = BD.auto(authors)
         end
     end
+
+    -- series name and position (if available, if requested)
     local series
-    if self.props.series and self.props.series_index > 0 then
+    local series_mode = BookInfoManager:getSetting("series_mode")
+    if self.props.series and self.props.series_index ~= 0 and series_mode == "series_in_separate_line" then
         if string.match(self.props.series, ": ") then
             series = string.sub(self.props.series, findLast(self.props.series, ": ") + 1, -1)
         else
             series = self.props.series
         end
         if self.props.series_index then
-            series = series .. " #" .. self.props.series_index
+            series = "\u{FFF1}" .. "\u{FFF2}" .. series .. " #" .. self.props.series_index .. "\u{FFF3}"
         end
         author_block = series .. "\n" .. author
     else
@@ -256,9 +266,9 @@ end
 function AltBookStatusWidget:genSummaryGroup(width)
     local height
     if Screen:getScreenMode() == "landscape" then
-        height = Screen:scaleBySize(165) --value increased by 60 due to no status toggles (and another 25 because that looks better)
+        height = Screen:scaleBySize(165)
     else
-        height = Screen:scaleBySize(265) --value increased by 105 due to no status toggles
+        height = Screen:scaleBySize(265)
     end
 
     local html_contents

@@ -53,10 +53,11 @@ local _BookStatusWidget_genSummaryGroup_orig = BookStatusWidget.genSummaryGroup
 local DISPLAY_MODES = {
     -- nil or ""                -- classic : filename only
     mosaic_image        = true, -- 3x3 grid covers with images
-    mosaic_text         = true, -- 3x3 grid covers text only
     list_image_meta     = true, -- image with metadata (title/authors)
     list_only_meta      = true, -- metadata with no image
-    list_image_filename = true, -- image with filename (no metadata)
+
+    -- mosaic_text         = true, -- 3x3 grid covers text only
+    -- list_image_filename = true, -- image with filename (no metadata)
 }
 
 -- Store some states as locals, to be permanent across instantiations
@@ -69,12 +70,13 @@ local series_mode = nil -- defaults to not display series
 local CoverBrowser = WidgetContainer:extend{
     name = "coverbrowserclean",
     modes = {
-        { _("Classic (filename only)") },
-        { _("Mosaic with cover images"), "mosaic_image" },
-        { _("Mosaic with text covers"), "mosaic_text" },
-        { _("Detailed list with cover images and metadata"), "list_image_meta" },
-        { _("Detailed list with metadata, no images"), "list_only_meta" },
-        { _("Detailed list with cover images and filenames"), "list_image_filename" },
+        { _("Detailed List"), "list_only_meta" },
+        { _("Detailed List (with covers)"), "list_image_meta" },
+        { _("Cover Grid"), "mosaic_image" },
+        { _("Original List (filenames only)") },
+
+        -- { _("Mosaic with text covers"), "mosaic_text" },
+        -- { _("Detailed list with cover images and filenames"), "list_image_filename" },
     },
 }
 function string.starts(String,Start)
@@ -361,14 +363,6 @@ function CoverBrowser:addToMainMenu(menu_items)
             {
                 text = _("Display hints"),
                 sub_item_table = {
-                    -- {
-                    --     text = _("Show hint for books with description"),
-                    --     checked_func = function() return not BookInfoManager:getSetting("no_hint_description") end,
-                    --     callback = function()
-                    --         BookInfoManager:toggleSetting("no_hint_description")
-                    --         fc:updateItems(1, true)
-                    --     end,
-                    -- },
                     {
                         text = _("Show hint for book status in history"),
                         checked_func = function() return BookInfoManager:getSetting("history_hint_opened") end,
@@ -390,32 +384,6 @@ function CoverBrowser:addToMainMenu(menu_items)
             {
                 text = _("Series"),
                 sub_item_table = {
-                    {
-                        text = _("Append series metadata to authors"),
-                        checked_func = function() return series_mode == "append_series_to_authors" end,
-                        callback = function()
-                            if series_mode == "append_series_to_authors" then
-                                series_mode = nil
-                            else
-                                series_mode = "append_series_to_authors"
-                            end
-                            BookInfoManager:saveSetting("series_mode", series_mode)
-                            fc:updateItems(1, true)
-                        end,
-                    },
-                    {
-                        text = _("Append series metadata to title"),
-                        checked_func = function() return series_mode == "append_series_to_title" end,
-                        callback = function()
-                            if series_mode == "append_series_to_title" then
-                                series_mode = nil
-                            else
-                                series_mode = "append_series_to_title"
-                            end
-                            BookInfoManager:saveSetting("series_mode", series_mode)
-                            fc:updateItems(1, true)
-                        end,
-                    },
                     {
                         text = _("Show series metadata in separate line"),
                         checked_func = function() return series_mode == "series_in_separate_line" end,

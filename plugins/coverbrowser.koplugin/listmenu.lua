@@ -721,7 +721,7 @@ function ListMenuItem:update()
                     authors = BD.auto(authors)
                 end
             end
-            -- add Series metadata if requested
+            -- series name and position (if available, if requested)
             if show_series then
                 if string.match(bookinfo.series, ": ") then
                     bookinfo.series = string.sub(bookinfo.series, findLast(bookinfo.series, ": ") + 1, -1)
@@ -731,22 +731,13 @@ function ListMenuItem:update()
                 else
                     bookinfo.series = BD.auto(bookinfo.series)
                 end
-                if series_mode == "append_series_to_title" then
-                    if title then
-                        title = title .. " - " .. bookinfo.series
-                    else
-                        title = bookinfo.series
-                    end
-                end
                 if not authors then
-                    if series_mode == "append_series_to_authors" or series_mode == "series_in_separate_line" then
-                        authors = bookinfo.series
+                    if series_mode == "series_in_separate_line" then
+                        authors = "\u{FFF1}" .. "\u{FFF2}" .. bookinfo.series .. "\u{FFF3}"
                     end
                 else
-                    if series_mode == "append_series_to_authors" then
-                        authors = authors .. " - " .. bookinfo.series
-                    elseif series_mode == "series_in_separate_line" then
-                        authors = bookinfo.series .. "\n" .. authors
+                    if series_mode == "series_in_separate_line" then
+                        authors = "\u{FFF1}" .. "\u{FFF2}" .. bookinfo.series .. "\u{FFF3}" .. "\n" .. authors
                     end
                 end
             end
@@ -1167,6 +1158,7 @@ end
 function ListMenu:_updateItemsBuildUI()
     -- Build our list
     local line_width = self.width or self.screen_w
+    -- create and draw the top-most line at 94% screen width (acts like bottom line for titlebar)
     local line_widget = HorizontalGroup:new{
         HorizontalSpan:new { width = line_width * 0.03 },
         LineWidget:new {
@@ -1205,6 +1197,7 @@ function ListMenu:_updateItemsBuildUI()
             do_filename_only = self._do_filename_only,
         }
         table.insert(self.item_group, item_tmp)
+        -- draw smaller, lighter lines under each item except the final item (footer draws its own line)
         if idx < self.perpage then
             local small_line_width = line_width * 0.60
             local small_line_widget = LineWidget:new {

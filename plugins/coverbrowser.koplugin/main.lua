@@ -45,7 +45,7 @@ local _Menu_updatePageInfo_orig = Menu.updatePageInfo
 
 local BookStatusWidget = require("ui/widget/bookstatuswidget")
 local _BookStatusWidget_genHeader_orig = BookStatusWidget.genHeader
-local _BookStatusWidget_genStatusContent_orig = BookStatusWidget.genStatusContent
+local _BookStatusWidget_getStatusContent_orig = BookStatusWidget.getStatusContent
 local _BookStatusWidget_genBookInfoGroup_orig = BookStatusWidget.genBookInfoGroup
 local _BookStatusWidget_genSummaryGroup_orig = BookStatusWidget.genSummaryGroup
 
@@ -603,7 +603,7 @@ function CoverBrowser:setupFileManagerDisplayMode(display_mode)
         Menu.init = _Menu_init_orig
         Menu.updatePageInfo = _Menu_updatePageInfo_orig
         BookStatusWidget.genHeader = _BookStatusWidget_genHeader_orig
-        BookStatusWidget.genStatusContent = _BookStatusWidget_genStatusContent_orig
+        BookStatusWidget.getStatusContent = _BookStatusWidget_getStatusContent_orig
         BookStatusWidget.genBookInfoGroup = _BookStatusWidget_genBookInfoGroup_orig
         BookStatusWidget.genSummaryGroup = _BookStatusWidget_genSummaryGroup_orig
         -- Also clean-up what we added, even if it does not bother original code
@@ -669,7 +669,7 @@ function CoverBrowser:setupFileManagerDisplayMode(display_mode)
 
     local AltBookStatusWidget = require("BookStatusWidget")
     BookStatusWidget.genHeader = AltBookStatusWidget.genHeader
-    BookStatusWidget.genStatusContent = AltBookStatusWidget.genStatusContent
+    BookStatusWidget.getStatusContent = AltBookStatusWidget.getStatusContent
     BookStatusWidget.genBookInfoGroup = AltBookStatusWidget.genBookInfoGroup
     BookStatusWidget.genSummaryGroup = AltBookStatusWidget.genSummaryGroup
 

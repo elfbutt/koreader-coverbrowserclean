@@ -37,19 +37,12 @@ local BookInfoManager = require("bookinfomanager")
 -- Here is the specific UI implementation for "list" display modes
 -- (see covermenu.lua for the generic code)
 
--- We will show a rotated dogear at bottom right corner of cover widget for
--- opened files (the dogear will make it look like a "used book")
--- The ImageWidget Will be created when we know the available height (and
--- recreated if height changes)
--- local corner_mark_size = -1
--- local corner_mark
-
-local is_pathchooser = false
-
+-- declare 3 fonts included with our plugin
 local title_serif = "source/SourceSerif4-BoldIt.ttf"
 local good_serif = "source/SourceSerif4-Regular.ttf"
 local good_sans = "source/SourceSans3-Regular"
 
+local is_pathchooser = false
 local scale_by_size = Screen:scaleBySize(1000000) * (1 / 1000000)
 
 -- ItemShortCutIcon (for keyboard navigation) is private to menu.lua and can't be accessed,
@@ -235,6 +228,7 @@ function ListMenuItem:update()
         self.menu.cover_specs = false
     end
 
+    -- test to see what style to draw (pathchooser vs "detailed list view mode")
     is_pathchooser = false
     if (self.title_bar and string.starts(self.title_bar.title, "Long-press to choose")) or
             (self.menu and string.starts(self.menu.title, "Long-press to choose")) then
@@ -249,29 +243,32 @@ function ListMenuItem:update()
         local wright_items = { align = "right" }
 
         if is_pathchooser == false then
+            -- replace the stock tiny file and folder glyphs with text
             local folder_count = string.match(self.mandatory, "(%d+) \u{F114}")
             local files_count = string.match(self.mandatory, "(%d+) \u{F016}")
-            local folder_string = "Folder"
-            local file_string = "Book"
+            local folder_text = "Folder"
+            local file_text = "Book"
 
+            -- add file or folder counts as necessary with pluralization (english)
             if folder_count then
-                if tonumber(folder_count) > 1 then folder_string = folder_string .. "s" end
+                if tonumber(folder_count) > 1 then folder_text = folder_text .. "s" end
                 local wfoldercount = TextWidget:new {
-                    text = folder_count .. " " .. folder_string,
+                    text = folder_count .. " " .. folder_text,
                     face = Font:getFace(good_sans, _fontSize(14, 18)),
                 }
                 table.insert(wright_items, wfoldercount)
             end
             if files_count then
-                if tonumber(files_count) > 1 then file_string = file_string .. "s" end
+                if tonumber(files_count) > 1 then file_text = file_text .. "s" end
                 local wfilecount = TextWidget:new {
-                    text = files_count .. " " .. file_string,
+                    text = files_count .. " " .. file_text,
                     face = Font:getFace(good_sans, _fontSize(14, 18)),
                 }
                 table.insert(wright_items, wfilecount)
             end
         else
             local wmandatory = TextWidget:new{
+                -- self.mandatory CAN be nil, usually in pathchooser
                 text = self.mandatory or "",
                 face = Font:getFace(good_sans, _fontSize(14, 18)),
             }
@@ -289,6 +286,8 @@ function ListMenuItem:update()
         end
 
         local pad_width = Screen:scaleBySize(10) -- on the left, in between, and on the right
+
+        -- add cover-art sized icon for folders
         local folder_cover
         if self.do_cover_image and is_pathchooser == false then
             folder_cover = ImageWidget:new({
@@ -310,8 +309,7 @@ function ListMenuItem:update()
 
         local folderfont = good_serif
 
-        --if (self.title_bar and string.starts(self.title_bar.title, "Long-press to choose")) or
-        --        (self.menu and string.starts(self.menu.title, "Long-press to choose")) then
+        -- style folder names differently in pathchooser
         if is_pathchooser then
             wlefttext = BD.directory(self.text)
             folderfont = good_sans
@@ -409,6 +407,7 @@ function ListMenuItem:update()
                     -- Let menu know it has some item with images
                     self.menu._has_cover_images = true
                     self._has_cover_image = true
+                -- add generic file icons, but not in pathchooser
                 elseif is_pathchooser == false then
                     -- use generic file icon insteaed of cover image
                     wleft_height = dimen.h
@@ -422,8 +421,6 @@ function ListMenuItem:update()
                             file = getSourceDir() .. "/icons/file-unsupported.svg",
                             alpha = true,
                             scale_factor = scale_factor,
-                            --width = dimen.h,
-                            --height = dimen.h,
                             original_in_nightmode = false,
                         })
                     else
@@ -431,8 +428,6 @@ function ListMenuItem:update()
                             file = getSourceDir() .. "/icons/file.svg",
                             alpha = true,
                             scale_factor = scale_factor,
-                            --width = dimen.h,
-                            --height = dimen.h,
                             original_in_nightmode = false,
                         })
                     end
@@ -441,6 +436,7 @@ function ListMenuItem:update()
                     wleft = CenterContainer:new {
                         dimen = Geom:new { w = wleft_width, h = wleft_height },
                         FrameContainer:new {
+                            -- add large white (transparent) border to cover art, which acts as "padding"
                             width = image_size.w + 2 * border_size,
                             height = image_size.h + 2 * border_size,
                             margin = 0,
@@ -456,13 +452,10 @@ function ListMenuItem:update()
                     self._has_cover_image = true
                 end
             end
+
             -- In case we got a blitbuffer and didnt use it (ignore_cover), free it
             if bookinfo.cover_bb and not cover_bb_used then
                 bookinfo.cover_bb:free()
-            end
-            -- So we can draw an indicator if this book has a description
-            if bookinfo.description then
-                self.has_description = true
             end
 
             -- Gather some info, mostly for right widget:
@@ -474,26 +467,28 @@ function ListMenuItem:update()
             -- page, percent read and book status from sidecar files, to avoid
             -- re-parsing them when re-rendering a visited page
 
-            local finished_string = "Finished"
-            local abandoned_string = "On Hold"
-            local read_string = "Read"
-            local unread_string = "New"
-
             if not self.menu.cover_info_cache then
                 self.menu.cover_info_cache = {}
             end
+
+            local finished_text = "Finished"
+            local abandoned_string = "On Hold"
+            local read_text = "Read"
+            local unread_text = "New"
             local pages_str = ""
             local pages_left_str = ""
-            local progress_str
             local percent_str = ""
+            local progress_str = ""
             local pages = bookinfo.pages -- default to those in bookinfo db
             local percent_finished, status, has_highlight
+
             if DocSettings:hasSidecarFile(self.filepath) then
                 self.been_opened = true
                 self.menu:updateCache(self.filepath, nil, true, pages) -- create new cache entry if absent
                 pages, percent_finished, status, has_highlight =
                     unpack(self.menu.cover_info_cache[self.filepath], 1, self.menu.cover_info_cache[self.filepath].n)
             end
+
             -- right widget, first line
             local directory, filename = util.splitFilePathName(self.filepath) -- luacheck: no unused
             local filename_without_suffix, filetype = filemanagerutil.splitFileNameType(filename)
@@ -508,7 +503,7 @@ function ListMenuItem:update()
                 fileinfo_str = mark .. BD.wrap(filetype) .. "  " .. BD.wrap(self.mandatory)
             end
             -- right widget, second line
-            local fn_page_count = string.match(filename_without_suffix, "P%((%d+)%)")
+            local fn_page_count = string.match(filename_without_suffix, "P%((%d+)%)") -- P(XXX) in filename is calculated pagecount
             local fontsize_info = _fontSize(14, 18)
 
             local wright_right_padding = 0
@@ -516,7 +511,7 @@ function ListMenuItem:update()
             local wright
             local wright_items = { align = "right" }
 
-            -- show P(XXX) progress bar if possible
+            -- build book-sized progress bar based on P(XXX) page count if possible
             if fn_page_count and
                         not BookInfoManager:getSetting("hide_page_info") and
                         not BookInfoManager:getSetting("show_pages_read_as_progress") and
@@ -560,6 +555,7 @@ function ListMenuItem:update()
                         --The trophy will hang exactly halfway over the edge of the bar
                         h = trophy_widget:getSize().h,
                     }
+                    -- books marked with "Finished" get a little trophy at the right edge of the progress bar
                     table.insert(progressbar_items, OverlapGroup:new{
                                                         dimen = progress_dimen,
                                                         CenterContainer:new{
@@ -592,15 +588,15 @@ function ListMenuItem:update()
                 table.insert(wright_items, progress)
             end
 
-            -- show progress text, page text, or file info text
+            -- show progress text, page text, and/or file info text
             if is_pathchooser == false then
                 if status == "complete" then
-                    progress_str = finished_string
+                    progress_str = finished_text
                 elseif status == "abandoned" then
                     progress_str = abandoned_string
                 elseif percent_finished then
                     progress_str = ""
-                    percent_str = math.floor(100 * percent_finished) .. "% " .. read_string
+                    percent_str = math.floor(100 * percent_finished) .. "% " .. read_text
                     if pages then
                         if BookInfoManager:getSetting("show_pages_read_as_progress") then
                             pages_str = T(_("Page %1 of %2"), Math.round(percent_finished * pages), pages)
@@ -610,7 +606,7 @@ function ListMenuItem:update()
                         end
                     end
                 else
-                    progress_str = unread_string
+                    progress_str = unread_text
                 end
 
                 if not BookInfoManager:getSetting("hide_page_info") then
@@ -673,22 +669,6 @@ function ListMenuItem:update()
                 wright_right_padding = Screen:scaleBySize(10)
             end
 
-            -- Create or replace corner_mark if needed
-            -- local mark_size = math.floor(dimen.h * (1 / 6))
-            -- -- Just fits under the page info text, which in turn adapts to the ListMenuItem height.
-            -- if mark_size ~= corner_mark_size then
-            --     corner_mark_size = mark_size
-            --     if corner_mark then
-            --         corner_mark:free()
-            --     end
-            --     corner_mark = IconWidget:new {
-            --         icon = "dogear.opaque",
-            --         rotation_angle = BD.mirroredUILayout() and 180 or 270,
-            --         width = corner_mark_size,
-            --         height = corner_mark_size,
-            --     }
-            -- end
-
             -- Build the middle main widget, in the space available
             local wmain_left_padding = Screen:scaleBySize(10)
             if self.do_cover_image and is_pathchooser == false then
@@ -702,13 +682,12 @@ function ListMenuItem:update()
             local fontname_title = title_serif
             local fontname_authors = good_serif
             local bold_title = false
-            --local fontsize_title = _fontSize(20, 24)
-            --local fontsize_authors = _fontSize(18, 22)
             local fontsize_title = _fontSize(22, 22)
             local fontsize_authors = _fontSize(16, 16)
             local wtitle, wauthors
             local title, authors
             local series_mode = BookInfoManager:getSetting("series_mode")
+            -- suppress showing series information if position in series is "0"
             local show_series = bookinfo.series and bookinfo.series_index and bookinfo.series_index ~= 0
 
             -- whether to use or not title and authors
@@ -738,9 +717,6 @@ function ListMenuItem:update()
                         authors = { authors[1], T(_("%1 et al."), authors[2]) }
                     end
                     authors = table.concat(authors, "\n")
-                    -- as we'll fit 3 lines instead of 2, we can avoid some loops by starting from a lower font size
-                    --fontsize_title = _fontSize(17, 21)
-                    --fontsize_authors = _fontSize(15, 19)
                 elseif authors then
                     authors = BD.auto(authors)
                 end
@@ -771,9 +747,6 @@ function ListMenuItem:update()
                         authors = authors .. " - " .. bookinfo.series
                     elseif series_mode == "series_in_separate_line" then
                         authors = bookinfo.series .. "\n" .. authors
-                        -- as we'll fit 3 lines instead of 2, we can avoid some loops by starting from a lower font size
-                        --fontsize_title = _fontSize(17, 21)
-                        --fontsize_authors = _fontSize(15, 19)
                     end
                 end
             end
@@ -793,14 +766,18 @@ function ListMenuItem:update()
                 -- We provide the book language to get a chance to render title
                 -- and authors with alternate glyphs for that language.
 
+                -- call this style for items like txt files
                 if bookinfo.unsupported or bookinfo._no_provider or not bookinfo.authors then
                     fontname_title = good_serif
                     bold_title = true
                 end
+
+                -- use this style for pathchooser mode when no metadata (all files, even things like txt files)
                 if is_pathchooser and not bookinfo.authors then
                     fontname_title = good_sans
                     bold_title = false
                 end
+
                 wtitle = TextBoxWidget:new {
                     text = title,
                     lang = bookinfo.language,
@@ -829,7 +806,6 @@ function ListMenuItem:update()
                     height_overflow_show_ellipsis = true,
                     alignment = "left",
                     fgcolor = Blitbuffer.COLOR_GRAY_2,
-                    --fgcolor = fgcolor,
                 }
             end
             while true do
@@ -1055,46 +1031,6 @@ function ListMenuItem:paintTo(bb, x, y)
         local iy = target.dimen.h - self.shortcut_icon.dimen.h
         self.shortcut_icon:paintTo(bb, x + ix, y + iy)
     end
-
-    -- -- to which we paint over a dogear if needed
-    -- if corner_mark and self.do_hint_opened and self.been_opened then
-    --     -- align it on bottom right corner of widget
-    --     local ix
-    --     if BD.mirroredUILayout() then
-    --         ix = 0
-    --     else
-    --         ix = self.width - corner_mark:getSize().w
-    --     end
-    --     local iy = self.height - corner_mark:getSize().h
-    --     -- corner_mark:paintTo(bb, x + ix, y + iy)
-    -- end
-
-    -- to which we paint a small indicator if this book has a description
-    -- if self.has_description and not BookInfoManager:getSetting("no_hint_description") then
-    --     local target = self[1][1][2]
-    --     local d_w = Screen:scaleBySize(3)
-    --     local d_h = math.ceil(target.dimen.h / 4)
-    --     if self.do_cover_image and target[1][1][1] then
-    --         -- it has an image, align it on image's framecontainer's right border
-    --         target = target[1][1]
-    --         local ix
-    --         if BD.mirroredUILayout() then
-    --             ix = target.dimen.x - d_w + 1
-    --         else
-    --             ix = target.dimen.x + target.dimen.w - 1
-    --         end
-    --         bb:paintBorder(ix, target.dimen.y, d_w, d_h, 1)
-    --     else
-    --         -- no image, align it to the left border
-    --         local ix
-    --         if BD.mirroredUILayout() then
-    --             ix = target.dimen.x + target.dimen.w - d_w
-    --         else
-    --             ix = x
-    --         end
-    --         bb:paintBorder(ix, y, d_w, d_h, 1)
-    --     end
-    -- end
 end
 
 -- As done in MenuItem
@@ -1139,6 +1075,7 @@ function ListMenu:_recalculateDimen()
     -- Find out available height from other UI elements made in Menu
     self.others_height = 0
 
+    -- test to see what style to draw (pathchooser vs "detailed list view mode")
     is_pathchooser = false
     if self.title_bar and string.starts(self.title_bar.title, "Long-press to choose") then
         is_pathchooser = true

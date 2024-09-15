@@ -140,7 +140,7 @@ function AltBookStatusWidget:genBookInfoGroup()
 
     -- author(s)
     local author_block
-    local author = ""
+    local author_text = ""
     if self.props.authors then
         local authors = self.props.authors
         if authors and authors:find("\n") then
@@ -151,27 +151,35 @@ function AltBookStatusWidget:genBookInfoGroup()
             if #authors > 2 then
                 authors = { authors[1], T(_("%1 et al."), authors[2]) }
             end
-            author = table.concat(authors, "\n")
+            author_text = table.concat(authors, "\n")
         elseif authors then
-            author = BD.auto(authors)
+            author_text = BD.auto(authors)
         end
     end
 
     -- series name and position (if available, if requested)
-    local series
     local series_mode = BookInfoManager:getSetting("series_mode")
-    if self.props.series and self.props.series_index ~= 0 and series_mode == "series_in_separate_line" then
+    -- suppress showing series information if position in series is "0"
+    local show_series = self.props.series and self.props.series_index and self.props.series_index ~= 0
+    if show_series then
         if string.match(self.props.series, ": ") then
-            series = string.sub(self.props.series, findLast(self.props.series, ": ") + 1, -1)
-        else
-            series = self.props.series
+            self.props.series = string.sub(self.props.series, findLast(self.props.series, ": ") + 1, -1)
         end
         if self.props.series_index then
-            series = "\u{FFF1}" .. "\u{FFF2}" .. series .. " #" .. self.props.series_index .. "\u{FFF3}"
+            self.props.series = "#" .. self.props.series_index .. " – " .. BD.auto(self.props.series)
+        else
+            self.props.series = BD.auto(self.props.series)
         end
-        author_block = series .. "\n" .. author
-    else
-        author_block = author
+        local series = self.props.series
+        if not author_text then
+            if series_mode == "series_in_separate_line" then
+                author_block = series
+            end
+        else
+            if series_mode == "series_in_separate_line" then
+                author_block = series .. "\n" .. author_text
+            end
+        end
     end
 
     local text_author = TextBoxWidget:new{

@@ -687,8 +687,7 @@ function ListMenuItem:update()
             local wtitle, wauthors
             local title, authors
             local series_mode = BookInfoManager:getSetting("series_mode")
-            -- suppress showing series information if position in series is "0"
-            local show_series = bookinfo.series and bookinfo.series_index and bookinfo.series_index ~= 0
+            local show_series = bookinfo.series and bookinfo.series_index and bookinfo.series_index ~= 0 -- suppress series if index is "0"
 
             -- whether to use or not title and authors
             -- (We wrap each metadata text with BD.auto() to get for each of them
@@ -726,18 +725,20 @@ function ListMenuItem:update()
                 if string.match(bookinfo.series, ": ") then
                     bookinfo.series = string.sub(bookinfo.series, findLast(bookinfo.series, ": ") + 1, -1)
                 end
-                if bookinfo.series_index then
-                    bookinfo.series = BD.auto(bookinfo.series .. " #" .. bookinfo.series_index)
+                if bookinfo.series_index then -- " "  №
+                    -- bookinfo.series = "\u{FFF1}#" .. bookinfo.series_index .. " – " .. "\u{FFF2}" .. BD.auto(bookinfo.series) .. "\u{FFF3}"
+                    bookinfo.series = "#" .. bookinfo.series_index .. " – " .. BD.auto(bookinfo.series)
                 else
                     bookinfo.series = BD.auto(bookinfo.series)
                 end
+                local series = bookinfo.series
                 if not authors then
                     if series_mode == "series_in_separate_line" then
-                        authors = "\u{FFF1}" .. "\u{FFF2}" .. bookinfo.series .. "\u{FFF3}"
+                        authors = series
                     end
                 else
                     if series_mode == "series_in_separate_line" then
-                        authors = "\u{FFF1}" .. "\u{FFF2}" .. bookinfo.series .. "\u{FFF3}" .. "\n" .. authors
+                        authors = series .. "\n" .. authors
                     end
                 end
             end

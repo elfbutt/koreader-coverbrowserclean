@@ -382,22 +382,17 @@ function CoverBrowser:addToMainMenu(menu_items)
                 }
             },
             {
-                text = _("Series"),
-                sub_item_table = {
-                    {
-                        text = _("Show series metadata in separate line"),
-                        checked_func = function() return series_mode == "series_in_separate_line" end,
-                        callback = function()
-                            if series_mode == "series_in_separate_line" then
-                                series_mode = nil
-                            else
-                                series_mode = "series_in_separate_line"
-                            end
-                            BookInfoManager:saveSetting("series_mode", series_mode)
-                            fc:updateItems(1, true)
-                        end,
-                    },
-                },
+                text = _("Show series metadata"),
+                checked_func = function() return series_mode == "series_in_separate_line" end,
+                callback = function()
+                    if series_mode == "series_in_separate_line" then
+                        series_mode = nil
+                    else
+                        series_mode = "series_in_separate_line"
+                    end
+                    BookInfoManager:saveSetting("series_mode", series_mode)
+                    fc:updateItems(1, true)
+                end,
             },
             {
                 text = _("Show file properties"),

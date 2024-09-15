@@ -2,45 +2,32 @@ local BD = require("ui/bidi")
 local Blitbuffer = require("ffi/blitbuffer")
 local BottomContainer = require("ui/widget/container/bottomcontainer")
 local ButtonDialog = require("ui/widget/buttondialog")
-local CenterContainer = require("ui/widget/container/centercontainer")
 local DocSettings = require("docsettings")
-local DocumentRegistry = require("document/documentregistry")
 local Geom = require("ui/geometry")
 local InfoMessage = require("ui/widget/infomessage")
 local LeftContainer = require("ui/widget/container/leftcontainer")
 local Menu = require("ui/widget/menu")
 local OverlapGroup = require("ui/widget/overlapgroup")
 local Font = require("ui/font")
-local FileChooser = require("ui/widget/filechooser")
 local FileManager = require("apps/filemanager/filemanager")
-local FileManagerBookInfo = require("apps/filemanager/filemanagerbookinfo")
-local FileManagerConverter = require("apps/filemanager/filemanagerconverter")
 local FileManagerShortcuts = require("apps/filemanager/filemanagershortcuts")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
-local HorizontalSpan = require("ui/widget/horizontalspan")
 local UIManager = require("ui/uimanager")
 local LineWidget = require("ui/widget/linewidget")
 local logger = require("logger")
 local RightContainer = require("ui/widget/container/rightcontainer")
 local Size = require("ui/size")
-local TextBoxWidget = require("ui/widget/textboxwidget")
 local TextWidget = require("ui/widget/textwidget")
 local TitleBar = require("titlebar")
-local TopContainer = require("ui/widget/container/topcontainer")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local FileManagerMenu = require("apps/filemanager/filemanagermenu")
-local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local _ = require("gettext")
-local BaseUtil = require("ffi/util")
 local Device = require("device")
 
-local C_ = _.pgettext
 local Screen = Device.screen
 local BookInfoManager = require("bookinfomanager")
-
-local MassStorage = require("ui/elements/mass_storage")
 
 -- This is a kind of "base class" for both MosaicMenu and ListMenu.
 -- It implements the common code shared by these, mostly the non-UI
@@ -65,9 +52,7 @@ local current_path = nil
 local current_cover_specs = false
 local is_pathchooser = false
 
-local title_serif = "source/SourceSerif4-BoldIt.ttf"
 local good_serif = "source/SourceSerif4-Regular.ttf"
-local good_sans = "source/SourceSans3-Regular"
 
 -- Do some collectgarbage() every few drawings
 local NB_DRAWINGS_BETWEEN_COLLECTGARBAGE = 5
@@ -547,7 +532,7 @@ function CoverMenu:onCloseWidget()
 end
 
 function CoverMenu:genItemTable(dirs, files, path)
-    -- Call the object's original genItemTable 
+    -- Call the object's original genItemTable
     local item_table = CoverMenu._FileChooser_genItemTable_orig(self, dirs, files, path)
     if #item_table > 0 and is_pathchooser == false then
         if item_table[1].text == "⬆ ../" then table.remove(item_table,1) end
@@ -619,12 +604,12 @@ function CoverMenu:updateTitleBarPath(path)
     -- We dont use that title bar and we dont use the subtitle
     -- CoverMenu:_FileManager_updateTitleBarPath_orig(path)
 
-    -- As ugly as it seems from the name, 
+    -- As ugly as it seems from the name,
     -- this is the best point to check if we have our new title bar
     -- and generate it if we do not
 
     -- filemanager.lua forces this by creating the filechooser right after
-    -- creating the original title bar 
+    -- creating the original title bar
     -- This function call is the only thing in between
     -- And we want the new title bar to be ready for that filechooser
 

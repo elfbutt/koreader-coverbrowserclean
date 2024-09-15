@@ -79,7 +79,7 @@ local CoverBrowser = WidgetContainer:extend{
 }
 function string.starts(String,Start)
     return string.sub(String,1,string.len(Start))==Start
- end
+end
 
 function CoverBrowser:init()
     if self.ui.file_chooser then -- FileManager menu only

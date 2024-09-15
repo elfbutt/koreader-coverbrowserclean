@@ -99,7 +99,7 @@ function AltBookStatusWidget:genBookInfoGroup()
     self.medium_font_face = Font:getFace("source/SourceSerif4-Regular.ttf", 22)
     self.large_font_face = Font:getFace("source/SourceSerif4-BoldIt.ttf", 30)
     self.padding = Screen:getSize().w * 0.03
-    
+
     local screen_width = Screen:getWidth()
     local split_span_width = math.floor(screen_width * 0.05)
 
@@ -131,7 +131,7 @@ function AltBookStatusWidget:genBookInfoGroup()
         },
     }
     -- series and author
-    local author_block = ""
+    local author_block
     local author = ""
     if self.props.authors then
         local authors = self.props.authors
@@ -148,7 +148,7 @@ function AltBookStatusWidget:genBookInfoGroup()
             author = BD.auto(authors)
         end
     end
-    local series = ""
+    local series
     if self.props.series and self.props.series_index > 0 then
         if string.match(self.props.series, ": ") then
             series = string.sub(self.props.series, findLast(self.props.series, ": ") + 1, -1)

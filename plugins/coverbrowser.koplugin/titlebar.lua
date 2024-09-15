@@ -4,7 +4,6 @@ local Geom = require("ui/geometry")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
 local IconButton = require("ui/widget/iconbutton")
-local logger = require("logger")
 local LineWidget = require("ui/widget/linewidget")
 local Math = require("optmath")
 local OverlapGroup = require("ui/widget/overlapgroup")
@@ -143,7 +142,7 @@ function TitleBar:init()
     local right2_icon_reserved_width = 0
     local right3_icon_reserved_width = 0
     local icon_reserved_width = 0
-    local icon_padding_width = 0
+    local icon_padding_width
     if self.left_icon then
         self.has_left_icon = true
         left_icon_reserved_width = left_icon_size + self.button_padding
@@ -178,12 +177,6 @@ function TitleBar:init()
         right2_icon_reserved_width = left_icon_reserved_width
         right3_icon_reserved_width = left_icon_reserved_width
         icon_reserved_width = left_icon_reserved_width
-    end
-    local title_max_width = self.width - 2*self.title_h_padding - left_icon_reserved_width - left2_icon_reserved_width - left3_icon_reserved_width - right_icon_reserved_width - right2_icon_reserved_width - right3_icon_reserved_width
-    -- local subtitle_max_width = self.width - 2*self.title_h_padding
-    local subtitle_max_width = 0
-    if not self.subtitle_fullwidth then
-        subtitle_max_width = 0
     end
 
     -- Title alignment
@@ -257,10 +250,6 @@ function TitleBar:init()
     if self.subtitle_widget then
         --table.insert(self.title_group, VerticalSpan:new{width = 0})
         if self.align == "left" then
-            local span_width = 0
-            if not self.subtitle_fullwidth then
-                span_width = 0
-            end
             self.inner_subtitle_group = HorizontalGroup:new{
                 HorizontalSpan:new{ width = 0 },
                 self.subtitle_widget,
@@ -443,7 +432,7 @@ function TitleBar:init()
             show_parent = self.show_parent,
         }
         table.insert(self, self.right_button)
-    end   
+    end
     if self.has_right2_icon then
         self.right2_button = IconButton:new{
             icon = self.right2_icon,

@@ -9,7 +9,6 @@ local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
-local IconWidget = require("ui/widget/iconwidget")
 local ImageWidget = require("ui/widget/imagewidget")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local LeftContainer = require("ui/widget/container/leftcontainer")
@@ -17,7 +16,6 @@ local LineWidget = require("ui/widget/linewidget")
 local Math = require("optmath")
 local OverlapGroup = require("ui/widget/overlapgroup")
 local ProgressWidget = require("ui/widget/progresswidget")
-local RenderImage = require("ui/renderimage")
 local RightContainer = require("ui/widget/container/rightcontainer")
 local Size = require("ui/size")
 local TextBoxWidget = require("ui/widget/textboxwidget")
@@ -30,7 +28,6 @@ local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local logger = require("logger")
 local util = require("util")
 local _ = require("gettext")
-local N_ = _.ngettext
 local Screen = Device.screen
 local T = require("ffi/util").template
 local getMenuText = require("ui/widget/menu").getMenuText
@@ -246,13 +243,10 @@ function ListMenuItem:update()
         local wright_items = { align = "right" }
 
         if is_pathchooser == false then
-            local folder_count = "0"
-            local files_count = "0"
+            local folder_count = string.match(self.mandatory, "(%d+) \u{F114}")
+            local files_count = string.match(self.mandatory, "(%d+) \u{F016}")
             local folder_string = "Folder"
             local file_string = "Book"
-
-            folder_count = string.match(self.mandatory, "(%d+) \u{F114}")
-            files_count = string.match(self.mandatory, "(%d+) \u{F016}")
 
             if folder_count then
                 if tonumber(folder_count) > 1 then folder_string = folder_string .. "s" end
@@ -289,7 +283,7 @@ function ListMenuItem:update()
         end
 
         local pad_width = Screen:scaleBySize(10) -- on the left, in between, and on the right
-        local folder_cover = nil
+        local folder_cover
         if self.do_cover_image and is_pathchooser == false then
             folder_cover = ImageWidget:new({
                 file = getSourceDir() .. "/icons/folder.svg",
@@ -410,7 +404,7 @@ function ListMenuItem:update()
                     cover_bb_used = true
                     -- Let ImageWidget do the scaling and give us the final size
                     local _, _, scale_factor = BookInfoManager.getCachedCoverSize(250, 500, max_img_w, max_img_h)
-                    local wimage = nil
+                    local wimage
                     if bookinfo._no_provider then
                         wimage = ImageWidget:new({
                             file = getSourceDir() .. "/icons/file-unsupported.svg",
@@ -472,14 +466,13 @@ function ListMenuItem:update()
             local abandoned_string = "On Hold"
             local read_string = "Read"
             local unread_string = "New"
-            local inprogress_string = "Reading"
 
             if not self.menu.cover_info_cache then
                 self.menu.cover_info_cache = {}
             end
             local pages_str = ""
             local pages_left_str = ""
-            local progress_str = ""
+            local progress_str
             local percent_str = ""
             local pages = bookinfo.pages -- default to those in bookinfo db
             local percent_finished, status, has_highlight
@@ -551,7 +544,7 @@ function ListMenuItem:update()
                         y = 0,
                         w = progress_bar:getSize().w + trophy_widget.width,
                         --Make this the width of the progress bar then add the width of the trophy
-                        --Center the progress bar inside it and set the trophy to the far right 
+                        --Center the progress bar inside it and set the trophy to the far right
                         --The trophy will hang exactly halfway over the edge of the bar
                         h = trophy_widget:getSize().h,
                     }
@@ -1179,7 +1172,7 @@ function ListMenu:_recalculateDimen()
     self.page_num = math.ceil(#self.item_table / self.perpage)
     -- fix current page if out of range
     if self.page_num > 0 and self.page > self.page_num
-    then 
+    then
         self.page = self.page_num
     end
 

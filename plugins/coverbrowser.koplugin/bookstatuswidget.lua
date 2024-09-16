@@ -139,7 +139,6 @@ function AltBookStatusWidget:genBookInfoGroup()
     }
 
     -- author(s)
-    local author_block
     local author_text = ""
     if self.props.authors then
         local authors = self.props.authors
@@ -173,17 +172,17 @@ function AltBookStatusWidget:genBookInfoGroup()
         local series = self.props.series
         if not author_text then
             if series_mode == "series_in_separate_line" then
-                author_block = series
+                author_text = series
             end
         else
             if series_mode == "series_in_separate_line" then
-                author_block = series .. "\n" .. author_text
+                author_text = series .. "\n" .. author_text
             end
         end
     end
 
-    local text_author = TextBoxWidget:new{
-        text =  author_block,
+    local bookinfo = TextBoxWidget:new{
+        text =  author_text,
         lang = lang,
         face = self.small_font_face,
         width = width,
@@ -192,8 +191,8 @@ function AltBookStatusWidget:genBookInfoGroup()
     }
     table.insert(book_meta_info_group,
         CenterContainer:new{
-            dimen = Geom:new{ w = width, h = text_author:getSize().h },
-            text_author
+            dimen = Geom:new{ w = width, h = bookinfo:getSize().h },
+            bookinfo
         }
     )
 

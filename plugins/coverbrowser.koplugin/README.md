@@ -18,11 +18,17 @@ Project Title is a project by two people to take what we liked about the CoverBr
 
 ## Installation Instructions
 
+[I would prefer this to be a wiki page]
+
 ## Warnings
+
+This is a project made by two people for their own use so there are limitations in what we can test and biases to our decisions. We both speak English and read English language eBooks. We both use Kobo brand eReaders with larger-than-average display sizes (Aura One, Sage). We both use Calibre to manage and sync our eBooks to our devices, primarily in the EPUB format with metadata and covers.
+
+In making changes to the CoverBrowser plugin we added features but we also removed some. The following items are not available, so if you rely on them, this may not be the right fit for you: [list here]
 
 ## Screenshots
 
-screenshots here
+[screenshots here]
 
 ## Licenses
 

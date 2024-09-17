@@ -88,6 +88,12 @@ local TitleBar = OverlapGroup:extend{
     right3_icon_tap_callback = function() end,
     right3_icon_hold_callback = function() end,
     right3_icon_allow_flash = true,
+    center_icon = nil,
+    center_icon_size_ratio = 0.6,
+    center_icon_rotation_angle = 0,
+    center_icon_tap_callback = function() end,
+    center_icon_hold_callback = function() end,
+    center_icon_allow_flash = true,
         -- set any of these _callback to false to not handle the event
         -- and let it propagate; otherwise the event is discarded
 
@@ -126,13 +132,15 @@ function TitleBar:init()
     local left3_icon_size = Screen:scaleBySize(DGENERIC_ICON_SIZE * self.left3_icon_size_ratio)
     local right_icon_size = Screen:scaleBySize(DGENERIC_ICON_SIZE * self.right_icon_size_ratio)
     local right2_icon_size = Screen:scaleBySize(DGENERIC_ICON_SIZE * self.right2_icon_size_ratio)
-    local right3_icon_size = Screen:scaleBySize(DGENERIC_ICON_SIZE * self.right2_icon_size_ratio)
+    local right3_icon_size = Screen:scaleBySize(DGENERIC_ICON_SIZE * self.right3_icon_size_ratio)
+    local center_icon_size = Screen:scaleBySize(DGENERIC_ICON_SIZE * self.center_icon_size_ratio)
     self.has_left_icon = false
     self.has_left2_icon = false
     self.has_left3_icon = false
     self.has_right_icon = false
     self.has_right2_icon = false
     self.has_right3_icon = false
+    self.has_center_icon = false
 
     -- No button on non-touch device
     local left_icon_reserved_width = 0
@@ -141,6 +149,7 @@ function TitleBar:init()
     local right_icon_reserved_width = 0
     local right2_icon_reserved_width = 0
     local right3_icon_reserved_width = 0
+    local center_icon_reserved_width = 0
     local icon_reserved_width = 0
     local icon_padding_width
     if self.left_icon then
@@ -166,6 +175,10 @@ function TitleBar:init()
     if self.right3_icon then
         self.has_right3_icon = true
         right3_icon_reserved_width = right3_icon_size + self.button_padding
+    end
+    if self.center_icon then
+        self.has_center_icon = true
+        center_icon_reserved_width = center_icon_size + self.button_padding
     end
 
     if self.align == "center" then
@@ -471,6 +484,25 @@ function TitleBar:init()
         }
         table.insert(self, self.right3_button)
     end
+    if self.has_center_icon then
+        self.center_button = IconButton:new{
+            icon = self.center_icon,
+            icon_rotation_angle = self.center_icon_rotation_angle,
+            width = center_icon_reserved_width,
+            height = center_icon_size,
+            padding = 0,
+            padding_left = 0,
+            padding_right = 0,
+            padding_bottom = 0,
+            padding_top = 0,
+            overlap_align = "center",
+            callback = self.center_icon_tap_callback,
+            hold_callback = self.center_icon_hold_callback,
+            allow_flash = self.center_icon_allow_flash,
+            show_parent = self.show_parent,
+        }
+        table.insert(self, self.center_button)
+    end
 
     -- Call our base class's init (especially since OverlapGroup has very peculiar self.dimen semantics...)
     OverlapGroup.init(self)
@@ -581,6 +613,12 @@ function TitleBar:setright3Icon(icon)
         UIManager:setDirty(self.show_parent, "ui", self.dimen)
     end
 end
+function TitleBar:setcenterIcon(icon)
+    if self.has_center_icon then
+        self.center_button:setIcon(icon)
+        UIManager:setDirty(self.show_parent, "ui", self.dimen)
+    end
+end
 
 -- layout for FocusManager
 function TitleBar:generateHorizontalLayout()
@@ -593,6 +631,9 @@ function TitleBar:generateHorizontalLayout()
     end
     if self.left3_button then
         table.insert(row, self.left3_button)
+    end
+    if self.center_button then
+        table.insert(row, self.center_button)
     end
     if self.right3_button then
         table.insert(row, self.right3_button)
@@ -623,6 +664,9 @@ function TitleBar:generateVerticalLayout()
     end
     if self.right3_button then
         table.insert(layout, {self.right3_button})
+    end
+    if self.center_button then
+        table.insert(layout, {self.center_button})
     end
     if self.right2_button then
         table.insert(layout, {self.right2_button})

@@ -22,9 +22,11 @@ local TitleBar = require("titlebar")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local FileManagerMenu = require("apps/filemanager/filemanagermenu")
+local Version = require("version")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local _ = require("gettext")
 local Device = require("device")
+local T = require("ffi/util").template
 
 local Screen = Device.screen
 local BookInfoManager = require("bookinfomanager")
@@ -654,6 +656,16 @@ function CoverMenu:updateTitleBarPath(path)
             right3_icon_size_ratio = 1,
             right3_icon_tap_callback = function() FileManager.instance.menu:onOpenLastDoc() end,
             right3_icon_hold_callback = false,
+            -- centered logo
+            center_icon = "dove",
+            center_icon_size_ratio = 1.3,
+            center_icon_tap_callback = false,
+            center_icon_hold_callback = function()
+                UIManager:show(InfoMessage:new{
+                    text = T(_("KOReader %1\n\nA document viewer for E Ink devices.\n\nLicensed under Affero GPL v3. All dependencies are free software.\n\nhttp://koreader.rocks"), BD.ltr(Version:getCurrentRevision())),
+                    icon = "koreader",
+                })
+                end,
         }
 
     end

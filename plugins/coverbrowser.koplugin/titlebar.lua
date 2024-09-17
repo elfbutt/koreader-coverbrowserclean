@@ -490,11 +490,11 @@ function TitleBar:init()
             icon_rotation_angle = self.center_icon_rotation_angle,
             width = center_icon_reserved_width,
             height = center_icon_size,
-            padding = 0,
-            padding_left = 0,
+            padding = self.button_padding,
+            padding_left = 0, -- no l/r padding for hero icon needed
             padding_right = 0,
-            padding_bottom = 0,
-            padding_top = 0,
+            padding_bottom = center_icon_size * 0.2,
+            padding_top = Screen:scaleBySize(3), -- less top padding to accomodate "hero" size
             overlap_align = "center",
             callback = self.center_icon_tap_callback,
             hold_callback = self.center_icon_hold_callback,

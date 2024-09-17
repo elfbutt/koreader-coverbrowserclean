@@ -657,17 +657,17 @@ function CoverMenu:updateTitleBarPath(path)
             right3_icon_tap_callback = function() FileManager.instance.menu:onOpenLastDoc() end,
             right3_icon_hold_callback = false,
             -- centered logo
-            center_icon = "dove",
-            center_icon_size_ratio = 1.3,
+            center_icon = "hero",
+            center_icon_size_ratio = 1.25, -- larger "hero" size compared to rest of titlebar icons
             center_icon_tap_callback = false,
             center_icon_hold_callback = function()
                 UIManager:show(InfoMessage:new{
-                    text = T(_("KOReader %1\n\nA document viewer for E Ink devices.\n\nLicensed under Affero GPL v3. All dependencies are free software.\n\nhttp://koreader.rocks"), BD.ltr(Version:getCurrentRevision())),
-                    icon = "koreader",
+                    text = T(_("KOReader %1\nhttps://koreader.rocks\n\nProject Title v1.0\nhttps://projtitle.github.io\n\nLicensed under Affero GPL v3.\nAll dependencies are free software."), BD.ltr(Version:getCurrentRevision())),
+                    show_icon = false,
+                    alignment = "center",
                 })
                 end,
         }
-
     end
 end
 

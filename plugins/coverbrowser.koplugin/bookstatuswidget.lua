@@ -161,22 +161,22 @@ function AltBookStatusWidget:genBookInfoGroup()
     -- suppress showing series information if position in series is "0"
     local show_series = self.props.series and self.props.series_index and self.props.series_index ~= 0
     if show_series then
+        local series_text = self.props.series
         if string.match(self.props.series, ": ") then
-            self.props.series = string.sub(self.props.series, findLast(self.props.series, ": ") + 1, -1)
+            series_text = string.sub(series_text, findLast(series_text, ": ") + 1, -1)
         end
         if self.props.series_index then
-            self.props.series = "#" .. self.props.series_index .. " – " .. BD.auto(self.props.series)
+            series_text = "#" .. self.props.series_index .. " – " .. BD.auto(series_text)
         else
-            self.props.series = BD.auto(self.props.series)
+            series_text = BD.auto(series_text)
         end
-        local series = self.props.series
         if not author_text then
             if series_mode == "series_in_separate_line" then
-                author_text = series
+                author_text = series_text
             end
         else
             if series_mode == "series_in_separate_line" then
-                author_text = series .. "\n" .. author_text
+                author_text = series_text .. "\n" .. author_text
             end
         end
     end

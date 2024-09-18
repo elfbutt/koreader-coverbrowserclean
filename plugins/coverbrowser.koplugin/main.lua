@@ -1,10 +1,3 @@
-local UIManager = require("ui/uimanager")
-local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local logger = require("logger")
-local _ = require("gettext")
-local T = require("ffi/util").template
-local BookInfoManager = require("bookinfomanager")
-
 --[[
     This plugin provides additional display modes to file browsers (File Manager
     and History).
@@ -18,6 +11,40 @@ local BookInfoManager = require("bookinfomanager")
     /koreader/icons/*.svg
 
 --]]
+
+-- If fonts are missing or if coverbrowser is still enabled, disable this entire plugin
+local lfs = require("libs/libkoreader-lfs")
+local font1_missing = true
+if lfs.attributes(lfs.currentdir() .. "/fonts/source/SourceSans3-Regular.ttf") ~= nil then
+    font1_missing = false
+end
+local font2_missing = true
+if lfs.attributes(lfs.currentdir() .. "/fonts/source/SourceSerif4-Regular.ttf") ~= nil then
+    font2_missing = false
+end
+local font3_missing = true
+if lfs.attributes(lfs.currentdir() .. "/fonts/source/SourceSerif4-BoldIt.ttf") ~= nil then
+    font3_missing = false
+end
+local plugins_disabled = G_reader_settings:readSetting("plugins_disabled")
+if type(plugins_disabled) ~= "table" then
+    plugins_disabled = {}
+end
+local coverbrowser_plugin = true
+if plugins_disabled["coverbrowser"] == true then
+    coverbrowser_plugin = false
+end
+if font1_missing or font2_missing or font3_missing or coverbrowser_plugin then
+    return { disabled = true, }
+end
+
+-- carry on...
+local UIManager = require("ui/uimanager")
+local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local logger = require("logger")
+local _ = require("gettext")
+local T = require("ffi/util").template
+local BookInfoManager = require("bookinfomanager")
 
 -- We need to save the original methods early here as locals.
 -- For some reason, saving them as attributes in init() does not allow
@@ -79,6 +106,7 @@ local CoverBrowser = WidgetContainer:extend{
         -- { _("Detailed list with cover images and filenames"), "list_image_filename" },
     },
 }
+
 function string.starts(String,Start)
     return string.sub(String,1,string.len(Start))==Start
 end

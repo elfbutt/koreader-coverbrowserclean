@@ -5,14 +5,12 @@
     or instances.
 
     The fonts and icons folders included with this plugin should be placed in /fonts and /icons folder
-    within the main /koreader folder your instalation lives in
-
-    /koreader/fonts/source/SourceSans*.ttf
-    /koreader/icons/*.svg
-
+    within the main koreader folder your instalation lives in, ie:
+    [...] /koreader/fonts/source/SourceSans*.ttf
+    [...] /koreader/icons/*.svg
 --]]
 
--- If fonts are missing or if coverbrowser is still enabled, disable this entire plugin
+-- Disable this entire plugin if: fonts missing. icons missing. coverbrowser enabled.
 local lfs = require("libs/libkoreader-lfs")
 local font1_missing = true
 if lfs.attributes(lfs.currentdir() .. "/fonts/source/SourceSans3-Regular.ttf") ~= nil then
@@ -26,6 +24,10 @@ local font3_missing = true
 if lfs.attributes(lfs.currentdir() .. "/fonts/source/SourceSerif4-BoldIt.ttf") ~= nil then
     font3_missing = false
 end
+local icons_missing = true
+if lfs.attributes(lfs.currentdir() .. "/icons/hero.svg") ~= nil then
+    icons_missing = false -- check for one icon and assume the rest are there too
+end
 local plugins_disabled = G_reader_settings:readSetting("plugins_disabled")
 if type(plugins_disabled) ~= "table" then
     plugins_disabled = {}
@@ -34,7 +36,7 @@ local coverbrowser_plugin = true
 if plugins_disabled["coverbrowser"] == true then
     coverbrowser_plugin = false
 end
-if font1_missing or font2_missing or font3_missing or coverbrowser_plugin then
+if font1_missing or font2_missing or font3_missing or icons_missing or coverbrowser_plugin then
     return { disabled = true, }
 end
 

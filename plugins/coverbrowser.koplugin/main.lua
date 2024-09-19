@@ -24,7 +24,7 @@ local font3_missing = true
 if lfs.attributes(lfs.currentdir() .. "/fonts/source/SourceSerif4-BoldIt.ttf") ~= nil then
     font3_missing = false
 end
-local icons_missing = true
+local icons_missing = true 
 if lfs.attributes(lfs.currentdir() .. "/icons/hero.svg") ~= nil then
     icons_missing = false -- check for one icon and assume the rest are there too
 end

@@ -291,7 +291,7 @@ function ListMenuItem:update()
         local folder_cover
         if self.do_cover_image and is_pathchooser == false then
             folder_cover = ImageWidget:new({
-                file = getSourceDir() .. "/icons/folder.svg",
+                file = getSourceDir() .. "/resources/folder.svg",
                 alpha = true,
                 scale_factor = 0,
                 width = dimen.h,
@@ -418,14 +418,14 @@ function ListMenuItem:update()
                     local wimage
                     if bookinfo._no_provider then
                         wimage = ImageWidget:new({
-                            file = getSourceDir() .. "/icons/file-unsupported.svg",
+                            file = getSourceDir() .. "/resources/file-unsupported.svg",
                             alpha = true,
                             scale_factor = scale_factor,
                             original_in_nightmode = false,
                         })
                     else
                         wimage = ImageWidget:new({
-                            file = getSourceDir() .. "/icons/file.svg",
+                            file = getSourceDir() .. "/resources/file.svg",
                             alpha = true,
                             scale_factor = scale_factor,
                             original_in_nightmode = false,
@@ -518,15 +518,6 @@ function ListMenuItem:update()
                         is_pathchooser == false then
                 local progressbar_items = { align = "center" }
 
-                local trophy_widget = ImageWidget:new({
-                    file = getSourceDir() .. "/icons/trophy.svg",
-                    width = Screen:scaleBySize(23),
-                    height = Screen:scaleBySize(23),
-                    scale_factor = 0,
-                    alpha = true,
-                    original_in_nightmode = false,
-                })
-
                 local fn_pages = tonumber(fn_page_count)
                 local max_progress_size = 235
                 local pixels_per_page = 3
@@ -544,37 +535,83 @@ function ListMenuItem:update()
                     percentage = 0,
                 }
 
+                -- i am unhappy with the complexity this added, will reconsider...
+                local progress_width = progress_bar:getSize().w
+                if status == "complete" then progress_width = progress_width + Screen:scaleBySize(11) end
+                if fn_pages > (max_progress_size * pixels_per_page) then progress_width = progress_width + Screen:scaleBySize(7) end
+                local progress_dimen = Geom:new{
+                    x = 0,
+                    y = 0,
+                    w = progress_width,
+                    h = Screen:scaleBySize(23),
+                }
+                local progress_block = OverlapGroup:new{
+                    dimen = progress_dimen
+                }
+                if status == "complete" and fn_pages > (max_progress_size * pixels_per_page) then
+                    table.insert(progress_block, CenterContainer:new {
+                        dimen = progress_dimen,
+                        HorizontalGroup:new {
+                            progress_bar,
+                            HorizontalSpan:new { width = Screen:scaleBySize(4)}, -- nudge because max_widget and trophy_widget aren't the same width
+                        }
+                    })
+                elseif status == "complete" then
+                    table.insert(progress_block, LeftContainer:new {
+                        dimen = progress_dimen,
+                        progress_bar,
+                    })
+                elseif fn_pages > (max_progress_size * pixels_per_page) then
+                    table.insert(progress_block, RightContainer:new {
+                        dimen = progress_dimen,
+                        progress_bar,
+                    })
+                else
+                    table.insert(progress_block, CenterContainer:new {
+                        dimen = progress_dimen,
+                        progress_bar,
+                    })
+                end
+                -- books with fn_page_count larger than the max get a plus sign at the left edge of the progress bar
+                local max_widget = ImageWidget:new({
+                    file = getSourceDir() .. "/resources/large_book.svg",
+                    width = Screen:scaleBySize(15),
+                    height = Screen:scaleBySize(15),
+                    scale_factor = 0,
+                    alpha = true,
+                    original_in_nightmode = false,
+                })
+                if fn_pages > (max_progress_size * pixels_per_page) then
+                    table.insert(progress_block, LeftContainer:new{
+                        dimen = progress_dimen,
+                        max_widget,
+                    })
+                end
+
                 if status == "complete" then
                     progress_bar.percentage = 1
-                    local progress_dimen =  Geom:new{
-                        x = 0,
-                        y = 0,
-                        w = progress_bar:getSize().w + trophy_widget.width,
-                        --Make this the width of the progress bar then add the width of the trophy
-                        --Center the progress bar inside it and set the trophy to the far right
-                        --The trophy will hang exactly halfway over the edge of the bar
-                        h = trophy_widget:getSize().h,
-                    }
-                    -- books marked with "Finished" get a little trophy at the right edge of the progress bar
-                    table.insert(progressbar_items, OverlapGroup:new{
-                                                        dimen = progress_dimen,
-                                                        CenterContainer:new{
-                                                            dimen = progress_dimen,
-                                                            progress_bar,
-                                                        },
-                                                        RightContainer:new{
-                                                            dimen = progress_dimen,
-                                                            trophy_widget,
-                                                        },
-                                                    })
+                    -- books marked as "Finished" get a little trophy at the right edge of the progress bar
+                    local trophy_widget = ImageWidget:new({
+                        file = getSourceDir() .. "/resources/trophy.svg",
+                        width = Screen:scaleBySize(23),
+                        height = Screen:scaleBySize(23),
+                        scale_factor = 0,
+                        alpha = true,
+                        original_in_nightmode = false,
+                    })
+                    table.insert(progress_block, RightContainer:new{
+                        dimen = progress_dimen,
+                        trophy_widget,
+                    })
+                    table.insert(progressbar_items, progress_block)
                 elseif status == "abandoned" then
                     progress_bar.percentage = 1
-                    table.insert(progressbar_items, progress_bar)
+                    table.insert(progressbar_items, progress_block)
                 elseif percent_finished then
                     progress_bar.percentage = percent_finished
-                    table.insert(progressbar_items, progress_bar)
+                    table.insert(progressbar_items, progress_block)
                 else
-                    table.insert(progressbar_items, progress_bar)
+                    table.insert(progressbar_items, progress_block)
                 end
 
                 for i, w in ipairs(progressbar_items) do
@@ -584,7 +621,6 @@ function ListMenuItem:update()
                     dimen = Geom:new { w = wright_width, h = 50 },
                     HorizontalGroup:new(progressbar_items),
                 }
-
                 table.insert(wright_items, progress)
             end
 

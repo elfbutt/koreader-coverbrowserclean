@@ -535,48 +535,64 @@ function ListMenuItem:update()
                     percentage = 0,
                 }
 
-                -- i am unhappy with the complexity this added, will reconsider...
                 local progress_width = progress_bar:getSize().w
-                if status == "complete" then progress_width = progress_width + Screen:scaleBySize(11) end
-                if fn_pages > (max_progress_size * pixels_per_page) then progress_width = progress_width + Screen:scaleBySize(7) end
-                local progress_dimen = Geom:new{
-                    x = 0,
-                    y = 0,
-                    w = progress_width,
-                    h = Screen:scaleBySize(23),
-                }
-                local progress_block = OverlapGroup:new{
-                    dimen = progress_dimen
-                }
+                local progress_dimen
+                local bar_and_icons
+                local bar_icon_size = Screen:scaleBySize(23) -- size for icons used with progress bar
                 if status == "complete" and fn_pages > (max_progress_size * pixels_per_page) then
-                    table.insert(progress_block, CenterContainer:new {
+                    progress_width = progress_width + bar_icon_size
+                    progress_dimen = Geom:new {
+                        x = 0, y = 0,
+                        w = progress_width,
+                        h = bar_icon_size,
+                    }
+                    bar_and_icons = CenterContainer:new {
                         dimen = progress_dimen,
-                        HorizontalGroup:new {
-                            progress_bar,
-                            HorizontalSpan:new { width = Screen:scaleBySize(4)}, -- nudge because max_widget and trophy_widget aren't the same width
-                        }
-                    })
+                        progress_bar,
+                    }
                 elseif status == "complete" then
-                    table.insert(progress_block, LeftContainer:new {
+                    progress_width = progress_width + math.floor(bar_icon_size/2)
+                    progress_dimen = Geom:new {
+                        x = 0, y = 0,
+                        w = progress_width,
+                        h = bar_icon_size,
+                    }
+                    bar_and_icons = LeftContainer:new {
                         dimen = progress_dimen,
                         progress_bar,
-                    })
+                    }
                 elseif fn_pages > (max_progress_size * pixels_per_page) then
-                    table.insert(progress_block, RightContainer:new {
+                    progress_width = progress_width + math.floor(bar_icon_size/2)
+                    progress_dimen = Geom:new {
+                        x = 0, y = 0,
+                        w = progress_width,
+                        h = bar_icon_size,
+                    }
+                    bar_and_icons = RightContainer:new {
                         dimen = progress_dimen,
                         progress_bar,
-                    })
+                    }
                 else
-                    table.insert(progress_block, CenterContainer:new {
+                    progress_dimen = Geom:new {
+                        x = 0, y = 0,
+                        w = progress_width,
+                        h = bar_icon_size,
+                    }
+                    bar_and_icons = CenterContainer:new {
                         dimen = progress_dimen,
                         progress_bar,
-                    })
+                    }
                 end
+                local progress_block = OverlapGroup:new{
+                    dimen = progress_dimen,
+                }
+                table.insert(progress_block, bar_and_icons)
+
                 -- books with fn_page_count larger than the max get a plus sign at the left edge of the progress bar
                 local max_widget = ImageWidget:new({
                     file = getSourceDir() .. "/resources/large_book.svg",
-                    width = Screen:scaleBySize(15),
-                    height = Screen:scaleBySize(15),
+                    width = bar_icon_size,
+                    height = bar_icon_size,
                     scale_factor = 0,
                     alpha = true,
                     original_in_nightmode = false,
@@ -593,8 +609,8 @@ function ListMenuItem:update()
                     -- books marked as "Finished" get a little trophy at the right edge of the progress bar
                     local trophy_widget = ImageWidget:new({
                         file = getSourceDir() .. "/resources/trophy.svg",
-                        width = Screen:scaleBySize(23),
-                        height = Screen:scaleBySize(23),
+                        width = bar_icon_size,
+                        height = bar_icon_size,
                         scale_factor = 0,
                         alpha = true,
                         original_in_nightmode = false,

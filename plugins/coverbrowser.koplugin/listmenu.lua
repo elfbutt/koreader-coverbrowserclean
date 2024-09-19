@@ -503,7 +503,6 @@ function ListMenuItem:update()
                 fileinfo_str = mark .. BD.wrap(filetype) .. "  " .. BD.wrap(self.mandatory)
             end
             -- right widget, second line
-            local fn_page_count = string.match(filename_without_suffix, "P%((%d+)%)") -- P(XXX) in filename is calculated pagecount
             local fontsize_info = _fontSize(14, 18)
 
             local wright_right_padding = 0
@@ -511,7 +510,8 @@ function ListMenuItem:update()
             local wright
             local wright_items = { align = "right" }
 
-            -- build book-sized progress bar based on P(XXX) page count if possible
+            -- build book-sized progress bar based on calibre plugin page count if present in filename
+            local fn_page_count = string.match(filename_without_suffix, "P%((%d+)%)")
             if fn_page_count and
                         not BookInfoManager:getSetting("hide_page_info") and
                         not BookInfoManager:getSetting("show_pages_read_as_progress") and
@@ -528,7 +528,7 @@ function ListMenuItem:update()
                 })
 
                 local fn_pages = tonumber(fn_page_count)
-                local max_progress_size = 250
+                local max_progress_size = 235
                 local pixels_per_page = 3
                 local min_progress_size = 25
                 local total_pixels = math.max((math.min(math.floor((fn_pages / pixels_per_page) + 0.5), max_progress_size)), min_progress_size)
@@ -725,7 +725,7 @@ function ListMenuItem:update()
                 if string.match(bookinfo.series, ": ") then
                     bookinfo.series = string.sub(bookinfo.series, findLast(bookinfo.series, ": ") + 1, -1)
                 end
-                if bookinfo.series_index then -- " "  №
+                if bookinfo.series_index then
                     -- bookinfo.series = "\u{FFF1}#" .. bookinfo.series_index .. " – " .. "\u{FFF2}" .. BD.auto(bookinfo.series) .. "\u{FFF3}"
                     bookinfo.series = "#" .. bookinfo.series_index .. " – " .. BD.auto(bookinfo.series)
                 else

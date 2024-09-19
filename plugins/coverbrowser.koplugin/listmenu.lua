@@ -540,7 +540,7 @@ function ListMenuItem:update()
                 local bar_and_icons
                 local bar_icon_size = Screen:scaleBySize(23) -- size for icons used with progress bar
                 if status == "complete" and fn_pages > (max_progress_size * pixels_per_page) then
-                    progress_width = progress_width + bar_icon_size -- both icons need 2x half-width added
+                    progress_width = progress_width + bar_icon_size -- both icons need 2x half-width (1 full width) added
                     progress_dimen = Geom:new {
                         x = 0, y = 0,
                         w = progress_width,
@@ -589,15 +589,15 @@ function ListMenuItem:update()
                 table.insert(progress_block, bar_and_icons)
 
                 -- books with fn_page_count larger than the max get an indicator at the left edge of the progress bar
-                local max_widget = ImageWidget:new({
-                    file = getSourceDir() .. "/resources/large_book.svg",
-                    width = bar_icon_size,
-                    height = bar_icon_size,
-                    scale_factor = 0,
-                    alpha = true,
-                    original_in_nightmode = false,
-                })
                 if fn_pages > (max_progress_size * pixels_per_page) then
+                    local max_widget = ImageWidget:new({
+                        file = getSourceDir() .. "/resources/large_book.svg",
+                        width = bar_icon_size,
+                        height = bar_icon_size,
+                        scale_factor = 0,
+                        alpha = true,
+                        original_in_nightmode = false,
+                    })
                     table.insert(progress_block, LeftContainer:new{
                         dimen = progress_dimen,
                         max_widget,

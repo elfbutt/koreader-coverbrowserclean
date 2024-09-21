@@ -523,7 +523,7 @@ function ListMenuItem:update()
                 local pixels_per_page = 3
                 local min_progress_size = 25
                 local total_pixels = math.max((math.min(math.floor((fn_pages / pixels_per_page) + 0.5), max_progress_size)), min_progress_size)
-                if fn_pages > (max_progress_size * pixels_per_page) then total_pixels = total_pixels - 12 end
+                -- if fn_pages > (max_progress_size * pixels_per_page) then total_pixels = total_pixels - 12 end
                 local progress_bar = ProgressWidget:new {
                     width = Screen:scaleBySize(total_pixels),
                     height = Screen:scaleBySize(15),

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<svg viewBox="2 3 19 19" width="19" height="19" xmlns="http://www.w3.org/2000/svg">
-  <path d="M 6 17 L 6 17.25" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="stroke: rgb(0, 0, 0);" transform="matrix(1, 0, 0, 1, -1.7763568394002505e-15, 0)"/>
-  <path d="M 9.25 17 L 9.25 17.25" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="stroke: rgb(0, 0, 0);" transform="matrix(1, 0, 0, 1, -1.7763568394002505e-15, 0)"/>
-  <path d="M 2.75 17 L 2.75 17.25" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="stroke: rgb(0, 0, 0);" transform="matrix(1, 0, 0, 1, -1.7763568394002505e-15, 0)"/>
+<svg viewBox="2 3 19 19" width="19px" height="19px" xmlns="http://www.w3.org/2000/svg">
+  <path d="M 2 3 L 18.25 3 L 11.067 22 L 2 22 L 2 3 Z" style="stroke: rgb(0, 0, 0); stroke-width: 0px; fill: rgb(255, 255, 255);"/>
+  <path class="st0" d="M 10 19.7 C 11.468 19.7 12.829 18.317 13.511 16.125 L 14.772 12.2 L 16.033 8.275 C 16.718 6.083 18.079 4.7 19.545 4.7" style="fill: none; stroke: rgb(0, 0, 0); stroke-linecap: round; stroke-linejoin: round; stroke-miterlimit: 10;"/>
 </svg>

@@ -315,8 +315,8 @@ function CoverBrowser:addToMainMenu(menu_items)
             {
                 text_func = function()
                     -- default files_per_page should be calculated by ListMenu on the first drawing,
-                    -- use 10 if ListMenu has not been drawn yet
-                    return T(_("Items per page in portrait list mode: %1"), fc.files_per_page or 10)
+                    -- use 7 if ListMenu has not been drawn yet
+                    return T(_("Items per page in portrait list mode: %1"), fc.files_per_page or 7)
                 end,
                 callback = function()
                     local files_per_page = fc.files_per_page or 7

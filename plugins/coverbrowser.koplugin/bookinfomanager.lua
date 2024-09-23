@@ -68,7 +68,7 @@ local BOOKINFO_DB_SCHEMA = [[
     CREATE UNIQUE INDEX IF NOT EXISTS dir_filename ON bookinfo(directory, filename);
 
     -- To keep track of CoverBrowser settings
-    CREATE TABLE IF NOT EXISTS config (
+    CREATE TABLE IF NOT EXISTS config2 (
         key TEXT PRIMARY KEY,
         value TEXT
     );
@@ -265,7 +265,7 @@ function BookInfoManager:loadSettings(db_conn)
         my_db_conn = self.db_conn
     end
 
-    local res = my_db_conn:exec("SELECT key, value FROM config;")
+    local res = my_db_conn:exec("SELECT key, value FROM config2;")
     if res then
         local keys = res[1]
         local values = res[2]
@@ -298,7 +298,7 @@ function BookInfoManager:saveSetting(key, value, db_conn, skip_reload)
         my_db_conn = self.db_conn
     end
 
-    local query = "INSERT OR REPLACE INTO config (key, value) VALUES (?, ?);"
+    local query = "INSERT OR REPLACE INTO config2 (key, value) VALUES (?, ?);"
     local stmt = my_db_conn:prepare(query)
     if value == false then -- convert false to NULL
         value = nil

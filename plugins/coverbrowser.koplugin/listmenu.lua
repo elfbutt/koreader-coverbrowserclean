@@ -196,11 +196,12 @@ function ListMenuItem:update()
     }
 
     local function _fontSize(nominal, max)
-        -- The nominal font size is based on 64px ListMenuItem height.
-        -- Keep ratio of font size to item height
+        -- Nominal font sizes are based on a theoretical 64px ListMenuItem height.
+        -- Keep ratio of font size to item height based on that theoretical ideal,
+        -- scaling it to match the actual item height.
         local font_size = math.floor(nominal * dimen.h * (1 / 64) / scale_by_size)
         -- But limit it to the provided max, to avoid huge font size when
-        -- only 4-6 items per page
+        -- only a few items per page
         if max and font_size >= max then
             return max
         end
@@ -209,6 +210,11 @@ function ListMenuItem:update()
     -- Will speed up a bit if we don't do all font sizes when
     -- looking for one that make text fit
     local fontsize_dec_step = math.ceil(_fontSize(100) * (1 / 100))
+    -- calculate font used in all right widget text
+    local wright_font_face = Font:getFace(good_sans, _fontSize(12, 18))
+    -- and font sizes used for title and author/series
+    local title_font_size = _fontSize(20, 26) -- 22
+    local authors_font_size = _fontSize(14, 18) -- 16
 
     -- We'll draw a border around cover images, it may not be
     -- needed with some covers, but it's nicer when cover is
@@ -254,7 +260,7 @@ function ListMenuItem:update()
                 if tonumber(folder_count) > 1 then folder_text = folder_text .. "s" end
                 local wfoldercount = TextWidget:new {
                     text = folder_count .. " " .. folder_text,
-                    face = Font:getFace(good_sans, _fontSize(14, 18)),
+                    face = wright_font_face,
                 }
                 table.insert(wright_items, wfoldercount)
             end
@@ -262,7 +268,7 @@ function ListMenuItem:update()
                 if tonumber(files_count) > 1 then file_text = file_text .. "s" end
                 local wfilecount = TextWidget:new {
                     text = files_count .. " " .. file_text,
-                    face = Font:getFace(good_sans, _fontSize(14, 18)),
+                    face = wright_font_face,
                 }
                 table.insert(wright_items, wfilecount)
             end
@@ -270,7 +276,7 @@ function ListMenuItem:update()
             local wmandatory = TextWidget:new{
                 -- self.mandatory CAN be nil, usually in pathchooser
                 text = self.mandatory or "",
-                face = Font:getFace(good_sans, _fontSize(14, 18)),
+                face = wright_font_face,
             }
             table.insert(wright_items, wmandatory)
         end
@@ -308,7 +314,6 @@ function ListMenuItem:update()
         local wlefttext = BD.directory(self.text:sub(1, -2))
 
         local folderfont = good_serif
-
         -- style folder names differently in pathchooser
         if is_pathchooser then
             wlefttext = BD.directory(self.text)
@@ -317,7 +322,7 @@ function ListMenuItem:update()
 
         local wleft = TextBoxWidget:new {
             text = wlefttext,
-            face = Font:getFace(folderfont, _fontSize(22, 22)),
+            face = Font:getFace(folderfont, title_font_size),
             width = wleft_width,
             alignment = "left",
             bold = false,
@@ -503,8 +508,6 @@ function ListMenuItem:update()
                 fileinfo_str = mark .. BD.wrap(filetype) .. "  " .. BD.wrap(self.mandatory)
             end
             -- right widget, second line
-            local fontsize_info = _fontSize(14, 18)
-
             local wright_right_padding = 0
             local wright_width = 0
             local wright
@@ -665,7 +668,7 @@ function ListMenuItem:update()
                     if progress_str ~= "" then
                         local wprogressinfo = TextWidget:new {
                             text = progress_str,
-                            face = Font:getFace(good_sans, fontsize_info),
+                            face = wright_font_face,
                             fgcolor = fgcolor,
                         }
                         table.insert(wright_items, wprogressinfo)
@@ -674,7 +677,7 @@ function ListMenuItem:update()
                         if pages_str ~= "" then
                             local wpageinfo = TextWidget:new {
                                 text = pages_str,
-                                face = Font:getFace(good_sans, fontsize_info),
+                                face = wright_font_face,
                                 fgcolor = fgcolor,
                             }
                             table.insert(wright_items, wpageinfo)
@@ -683,7 +686,7 @@ function ListMenuItem:update()
                         if percent_str ~= "" then
                             local wpercentinfo = TextWidget:new {
                                 text = percent_str,
-                                face = Font:getFace(good_sans, fontsize_info),
+                                face = wright_font_face,
                                 fgcolor = fgcolor,
                             }
                             table.insert(wright_items, wpercentinfo)
@@ -693,7 +696,7 @@ function ListMenuItem:update()
                         if pages_left_str ~= "" then
                             local wpagesleftinfo = TextWidget:new {
                                 text = pages_left_str,
-                                face = Font:getFace(good_sans, fontsize_info),
+                                face = wright_font_face,
                                 fgcolor = fgcolor,
                             }
                             table.insert(wright_items, wpagesleftinfo)
@@ -703,7 +706,7 @@ function ListMenuItem:update()
                 if not BookInfoManager:getSetting("hide_file_info") then
                     local wfileinfo = TextWidget:new {
                         text = fileinfo_str,
-                        face = Font:getFace(good_sans, fontsize_info),
+                        face = wright_font_face,
                         fgcolor = fgcolor,
                     }
                     table.insert(wright_items, wfileinfo)
@@ -734,8 +737,8 @@ function ListMenuItem:update()
             local fontname_title = title_serif
             local fontname_authors = good_serif
             local bold_title = false
-            local fontsize_title = _fontSize(22, 22)
-            local fontsize_authors = _fontSize(16, 16)
+            local fontsize_title = title_font_size
+            local fontsize_authors = authors_font_size
             local wtitle, wauthors
             local title, authors
             local series_mode = BookInfoManager:getSetting("series_mode")
@@ -970,15 +973,14 @@ function ListMenuItem:update()
                 -- If we have it, we need to build a more complex widget with
                 -- this date on the right
                 local fileinfo_str = self.mandatory
-                local fontsize_info = _fontSize(14, 18)
                 local wfileinfo = TextWidget:new {
                     text = fileinfo_str,
-                    face = Font:getFace(good_sans, fontsize_info),
+                    face = wright_font_face,
                     fgcolor = fgcolor,
                 }
                 local wpageinfo = TextWidget:new { -- Empty but needed for similar positionning
                     text = "",
-                    face = Font:getFace(good_sans, fontsize_info),
+                    face = wright_font_face,
                 }
                 wright_width = wfileinfo:getSize().w
                 wright = CenterContainer:new {
@@ -999,7 +1001,7 @@ function ListMenuItem:update()
             end
             local text = BD.filename(self.text)
             local text_widget
-            local fontsize_no_bookinfo = _fontSize(18, 22)
+            local fontsize_no_bookinfo = title_font_size
             repeat
                 if text_widget then
                     text_widget:free(true)
@@ -1150,8 +1152,9 @@ function ListMenu:_recalculateDimen()
     local available_height = self.inner_dimen.h - self.others_height - Size.line.thin
 
     if self.files_per_page == nil then -- first drawing
-        -- set default to 7 because that's a nice number in the middle of the available range for this plugin
-        self.files_per_page = 7
+        -- Default perpage is computed from a base of 90px per ListMenuItem,
+        -- which gives 7 items on kobo aura one/glo hd/sage
+        self.files_per_page = math.floor(available_height / scale_by_size / 90)
         BookInfoManager:saveSetting("files_per_page", self.files_per_page)
     end
     self.perpage = self.files_per_page

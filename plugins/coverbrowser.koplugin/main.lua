@@ -24,7 +24,7 @@ local font3_missing = true
 if lfs.attributes(lfs.currentdir() .. "/fonts/source/SourceSerif4-BoldIt.ttf") ~= nil then
     font3_missing = false
 end
-local icons_missing = true 
+local icons_missing = true
 if lfs.attributes(lfs.currentdir() .. "/icons/hero.svg") ~= nil then
     icons_missing = false -- check for one icon and assume the rest are there too
 end
@@ -85,6 +85,7 @@ local DISPLAY_MODES = {
     list_image_meta     = true, -- image with metadata (title/authors)
     list_only_meta      = true, -- metadata with no image
 
+    -- disable the following modes:
     -- mosaic_text         = true, -- 3x3 grid covers text only
     -- list_image_filename = true, -- image with filename (no metadata)
 }
@@ -104,6 +105,7 @@ local CoverBrowser = WidgetContainer:extend{
         { _("Cover Grid"), "mosaic_image" },
         { _("Original List (filenames only)") },
 
+        -- disable the following modes:
         -- { _("Mosaic with text covers"), "mosaic_text" },
         -- { _("Detailed list with cover images and filenames"), "list_image_filename" },
     },
@@ -123,16 +125,20 @@ function CoverBrowser:init()
     end
 
     -- Set up default display modes on first launch
-    if not G_reader_settings:isTrue("coverbrowser_initial_default_setup_done") then
+    if not G_reader_settings:isTrue("coverbrowser_initial_default_setup_done2") then
         -- Only if no display mode has been set yet
         if not BookInfoManager:getSetting("filemanager_display_mode")
             and not BookInfoManager:getSetting("history_display_mode") then
             -- logger.info("CoverBrowser: setting default display modes")
             BookInfoManager:saveSetting("filemanager_display_mode", "list_image_meta")
-            BookInfoManager:saveSetting("history_display_mode", "mosaic_image")
-            BookInfoManager:saveSetting("collection_display_mode", "mosaic_image")
+            BookInfoManager:saveSetting("history_display_mode", "list_image_meta")
+            BookInfoManager:saveSetting("collection_display_mode", "list_image_meta")
         end
-        G_reader_settings:makeTrue("coverbrowser_initial_default_setup_done")
+        -- set up a few default settings
+        BookInfoManager:saveSetting("series_mode", "series_in_separate_line")
+        BookInfoManager:saveSetting("hide_file_info", true)
+        BookInfoManager:saveSetting("unified_display_mode", true)
+        G_reader_settings:makeTrue("coverbrowser_initial_default_setup_done2")
     end
 
     self:setupFileManagerDisplayMode(BookInfoManager:getSetting("filemanager_display_mode"))

@@ -1150,9 +1150,8 @@ function ListMenu:_recalculateDimen()
     local available_height = self.inner_dimen.h - self.others_height - Size.line.thin
 
     if self.files_per_page == nil then -- first drawing
-        -- Default perpage is computed from a base of 64px per ListMenuItem,
-        -- which gives 10 items on kobo glo hd.
-        self.files_per_page = math.floor(available_height / scale_by_size / 64)
+        -- set default to 7 because that's a nice number in the middle of the available range for this plugin
+        self.files_per_page = 7
         BookInfoManager:saveSetting("files_per_page", self.files_per_page)
     end
     self.perpage = self.files_per_page

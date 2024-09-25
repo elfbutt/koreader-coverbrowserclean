@@ -1,5 +1,6 @@
 local BD = require("ui/bidi")
 local Blitbuffer = require("ffi/blitbuffer")
+local BottomContainer = require("ui/widget/container/bottomcontainer")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
 local DocSettings = require("docsettings")
@@ -20,6 +21,7 @@ local RightContainer = require("ui/widget/container/rightcontainer")
 local Size = require("ui/size")
 local TextBoxWidget = require("ui/widget/textboxwidget")
 local TextWidget = require("ui/widget/textwidget")
+local TopContainer = require("ui/widget/container/topcontainer")
 local UnderlineContainer = require("ui/widget/container/underlinecontainer")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
@@ -510,6 +512,7 @@ function ListMenuItem:update()
             -- right widget, second line
             local wright_right_padding = 0
             local wright_width = 0
+            local wright_height = 0
             local wright
             local wright_items = { align = "right" }
 
@@ -671,7 +674,7 @@ function ListMenuItem:update()
                             face = wright_font_face,
                             fgcolor = fgcolor,
                         }
-                        table.insert(wright_items, wprogressinfo)
+                        table.insert(wright_items, 1, wprogressinfo)
                     end
                     if BookInfoManager:getSetting("show_pages_read_as_progress") then
                         if pages_str ~= "" then
@@ -680,7 +683,7 @@ function ListMenuItem:update()
                                 face = wright_font_face,
                                 fgcolor = fgcolor,
                             }
-                            table.insert(wright_items, wpageinfo)
+                            table.insert(wright_items, 1, wpageinfo)
                         end
                     else
                         if percent_str ~= "" then
@@ -689,7 +692,7 @@ function ListMenuItem:update()
                                 face = wright_font_face,
                                 fgcolor = fgcolor,
                             }
-                            table.insert(wright_items, wpercentinfo)
+                            table.insert(wright_items, 1, wpercentinfo)
                         end
                     end
                     if BookInfoManager:getSetting("show_pages_left_in_progress") then
@@ -699,7 +702,7 @@ function ListMenuItem:update()
                                 face = wright_font_face,
                                 fgcolor = fgcolor,
                             }
-                            table.insert(wright_items, wpagesleftinfo)
+                            table.insert(wright_items, 1, wpagesleftinfo)
                         end
                     end
                 end
@@ -709,18 +712,15 @@ function ListMenuItem:update()
                         face = wright_font_face,
                         fgcolor = fgcolor,
                     }
-                    table.insert(wright_items, wfileinfo)
+                    table.insert(wright_items, 1, wfileinfo)
                 end
             end
 
             if #wright_items > 0 then
                 for i, w in ipairs(wright_items) do
                     wright_width = math.max(wright_width, w:getSize().w)
+                    wright_height = math.max(wright_height, w:getSize().h)
                 end
-                wright = RightContainer:new {
-                    dimen = Geom:new { w = wright_width, h = dimen.h },
-                    VerticalGroup:new(wright_items),
-                }
                 wright_right_padding = Screen:scaleBySize(10)
             end
 
@@ -731,8 +731,8 @@ function ListMenuItem:update()
                 -- portrait mode, will provide some padding
                 wmain_left_padding = Screen:scaleBySize(5)
             end
-            local wmain_right_padding = Screen:scaleBySize(10) -- used only for next calculation
-            local wmain_width = dimen.w - wleft_width - wmain_left_padding - wmain_right_padding - wright_width - wright_right_padding
+            local wmain_right_padding = Screen:scaleBySize(10) -- used only for next calculation   
+            local wmain_width = dimen.w - wleft_width - wmain_left_padding -- - wmain_right_padding - wright_width - wright_right_padding
 
             local fontname_title = title_serif
             local fontname_authors = good_serif
@@ -847,7 +847,7 @@ function ListMenuItem:update()
                     text = authors,
                     lang = bookinfo.language,
                     face = Font:getFace(fontname_authors, fontsize_authors),
-                    width = wmain_width,
+                    width = wmain_width - (wright_width + wright_right_padding),
                     height = height,
                     height_adjust = true,
                     height_overflow_show_ellipsis = true,
@@ -858,10 +858,10 @@ function ListMenuItem:update()
             while true do
                 build_title()
                 local height = wtitle:getSize().h
-                if authors then
+                --if authors then
                     build_authors()
                     height = height + wauthors:getSize().h
-                end
+                --end
                 if height <= dimen.h then
                     -- We fit!
                     break
@@ -900,10 +900,35 @@ function ListMenuItem:update()
             end
 
             local wmain = LeftContainer:new {
-                dimen = dimen:copy(),
-                VerticalGroup:new {
-                    wtitle,
-                    wauthors,
+                dimen = Geom:new { w = wmain_width, h = dimen.h },
+                OverlapGroup:new {
+                    TopContainer:new {
+                        dimen = Geom:new { w = wmain_width, h = dimen.h },
+                        VerticalGroup:new {
+                            VerticalSpan:new { width = wtitle:getSize().h },
+                            OverlapGroup:new {
+                                TopContainer:new {
+                                    dimen = Geom:new { w = wmain_width, h = dimen.h },
+                                    wauthors,
+                                },
+                                TopContainer:new {
+                                    dimen = Geom:new { w = wmain_width - wauthors:getSize().w, h = dimen.h },
+                                    HorizontalGroup:new {
+                                        HorizontalSpan:new { width = wauthors:getSize().w },
+                                        RightContainer:new {
+                                            dimen = Geom:new { w = wmain_width - wright_right_padding - wauthors:getSize().w, h = dimen.h - wtitle:getSize().h },
+                                            VerticalGroup:new(wright_items),
+                                        },
+                                        HorizontalSpan:new { width = wright_right_padding },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    TopContainer:new {
+                        dimen = Geom:new { w = wmain_width, h = dimen.h },
+                        wtitle,
+                    },
                 }
             }
 
@@ -938,15 +963,15 @@ function ListMenuItem:update()
                 wmain
             })
             -- add right widget
-            if wright then
-                table.insert(widget, RightContainer:new {
-                    dimen = dimen:copy(),
-                    HorizontalGroup:new {
-                        wright,
-                        HorizontalSpan:new { width = wright_right_padding },
-                    },
-                })
-            end
+            -- if wright then
+            --     table.insert(widget, RightContainer:new {
+            --         dimen = dimen:copy(),
+            --         HorizontalGroup:new {
+            --             wright,
+            --             HorizontalSpan:new { width = wright_right_padding },
+            --         },
+            --     })
+            -- end
         else -- bookinfo not found
             if self.init_done then
                 -- Non-initial update(), but our widget is still not found:

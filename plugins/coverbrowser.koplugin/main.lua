@@ -138,6 +138,7 @@ function CoverBrowser:init()
         BookInfoManager:saveSetting("series_mode", "series_in_separate_line")
         BookInfoManager:saveSetting("hide_file_info", true)
         BookInfoManager:saveSetting("unified_display_mode", true)
+        BookInfoManager:saveSetting("show_progress_in_mosaic", true)
         G_reader_settings:makeTrue("coverbrowser_initial_default_setup_done2")
     end
 
@@ -330,8 +331,8 @@ function CoverBrowser:addToMainMenu(menu_items)
                     local widget = SpinWidget:new{
                         title_text = _("Portrait list mode"),
                         value = files_per_page,
-                        value_min = 4,
-                        value_max = 12,
+                        value_min = 3,
+                        value_max = 10,
                         default_value = 7,
                         keep_shown_on_apply = true,
                         callback = function(spin)
@@ -356,46 +357,37 @@ function CoverBrowser:addToMainMenu(menu_items)
                 end,
                 separator = true,
             },
-            {
-                text = _("Progress"),
-                sub_item_table = {
-                    {
-                        text = _("Show progress in mosaic mode"),
-                        checked_func = function() return BookInfoManager:getSetting("show_progress_in_mosaic") end,
-                        callback = function()
-                            BookInfoManager:toggleSetting("show_progress_in_mosaic")
-                            fc:updateItems(1, true)
-                        end,
-                        separator = true,
-                    },
-                    {
-                        text = _("Show progress in detailed list mode"),
-                        checked_func = function() return not BookInfoManager:getSetting("hide_page_info") end,
-                        callback = function()
-                            BookInfoManager:toggleSetting("hide_page_info")
-                            fc:updateItems(1, true)
-                        end,
-                    },
-                    {
-                        text = _("Show number of pages read instead of progress %"),
-                        enabled_func = function() return not BookInfoManager:getSetting("hide_page_info") end,
-                        checked_func = function() return BookInfoManager:getSetting("show_pages_read_as_progress") end,
-                        callback = function()
-                            BookInfoManager:toggleSetting("show_pages_read_as_progress")
-                            fc:updateItems(1, true)
-                        end,
-                    },
-                    {
-                        text = _("Show number of pages left to read"),
-                        enabled_func = function() return not BookInfoManager:getSetting("hide_page_info") end,
-                        checked_func = function() return BookInfoManager:getSetting("show_pages_left_in_progress") end,
-                        callback = function()
-                            BookInfoManager:toggleSetting("show_pages_left_in_progress")
-                            fc:updateItems(1, true)
-                        end,
-                    },
-                },
-            },
+            -- {
+            --     text = _("Progress"),
+            --     sub_item_table = {
+            --         {
+            --             text = _("Show progress in mosaic mode"),
+            --             checked_func = function() return BookInfoManager:getSetting("show_progress_in_mosaic") end,
+            --             callback = function()
+            --                 BookInfoManager:toggleSetting("show_progress_in_mosaic")
+            --                 fc:updateItems(1, true)
+            --             end,
+            --             separator = true,
+            --         },
+            --         {
+            --             text = _("Show progress in detailed list mode"),
+            --             checked_func = function() return not BookInfoManager:getSetting("hide_page_info") end,
+            --             callback = function()
+            --                 BookInfoManager:toggleSetting("hide_page_info")
+            --                 fc:updateItems(1, true)
+            --             end,
+            --         },
+            --         {
+            --             text = _("Show number of pages left to read"),
+            --             enabled_func = function() return not BookInfoManager:getSetting("hide_page_info") end,
+            --             checked_func = function() return BookInfoManager:getSetting("show_pages_left_in_progress") end,
+            --             callback = function()
+            --                 BookInfoManager:toggleSetting("show_pages_left_in_progress")
+            --                 fc:updateItems(1, true)
+            --             end,
+            --         },
+            --     },
+            -- },
             {
                 text = _("Display hints"),
                 sub_item_table = {
@@ -431,12 +423,26 @@ function CoverBrowser:addToMainMenu(menu_items)
                 end,
             },
             {
-                text = _("Show file properties"),
+                text = _("Show pages read instead of progress %"),
+                enabled_func = function() return not BookInfoManager:getSetting("hide_page_info") end,
+                checked_func = function() return BookInfoManager:getSetting("show_pages_read_as_progress") end,
+                callback = function()
+                    BookInfoManager:toggleSetting("show_pages_read_as_progress")
+                    fc:updateItems(1, true)
+                end,
+            },
+            {
+                text = _("Show file info instead of pages or progress %"),
                 checked_func = function()
                     return not BookInfoManager:getSetting("hide_file_info")
                 end,
                 callback = function()
                     BookInfoManager:toggleSetting("hide_file_info")
+                    if not BookInfoManager:getSetting("hide_file_info") then
+                        BookInfoManager:saveSetting("hide_page_info", true)
+                    else
+                        BookInfoManager:saveSetting("hide_page_info", false)
+                    end
                     fc:updateItems(1, true)
                 end,
                 separator = true,

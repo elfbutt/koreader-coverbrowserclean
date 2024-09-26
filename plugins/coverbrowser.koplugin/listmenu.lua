@@ -825,14 +825,16 @@ function ListMenuItem:update()
                     bold_title = false
                 end
 
-                wtitle = TextBoxWidget:new {
+                wtitle = TextWidget:new {
                     text = title,
                     lang = bookinfo.language,
                     face = Font:getFace(fontname_title, fontsize_title),
-                    width = wmain_width,
-                    height = height,
-                    height_adjust = true,
-                    height_overflow_show_ellipsis = true,
+                    max_width = wmain_width - wright_right_padding,
+                    --width = wmain_width,
+                    --height = height,
+                    --height_adjust = true,
+                    --height_overflow_show_ellipsis = true,
+                    truncate_with_ellipsis = true,
                     alignment = "left",
                     bold = bold_title,
                     fgcolor = fgcolor,
@@ -855,15 +857,20 @@ function ListMenuItem:update()
                     fgcolor = Blitbuffer.COLOR_GRAY_2,
                 }
             end
+            build_title()
+            while wtitle:isTruncated() do
+                if fontsize_title < 22 then
+                    break
+                end
+                fontsize_title = fontsize_title - fontsize_dec_step
+                build_title(fontsize_title)
+            end
             while true do
                 build_title()
                 local height = wtitle:getSize().h
-                --if authors then
-                    build_authors()
-                    height = height + wauthors:getSize().h
-                --end
-                if height <= dimen.h then
-                    -- We fit!
+                build_authors()
+                height = height + wauthors:getSize().h
+                if height <= dimen.h then -- We fit!
                     break
                 end
                 -- Don't go too low, and get out of this loop.

@@ -673,6 +673,7 @@ function ListMenuItem:update()
                             text = progress_str,
                             face = wright_font_face,
                             fgcolor = fgcolor,
+                            padding = 0,
                         }
                         table.insert(wright_items, 1, wprogressinfo)
                     end
@@ -682,6 +683,7 @@ function ListMenuItem:update()
                                 text = pages_str,
                                 face = wright_font_face,
                                 fgcolor = fgcolor,
+                                padding = 0,
                             }
                             table.insert(wright_items, 1, wpageinfo)
                         end
@@ -691,6 +693,7 @@ function ListMenuItem:update()
                                 text = percent_str,
                                 face = wright_font_face,
                                 fgcolor = fgcolor,
+                                padding = 0,
                             }
                             table.insert(wright_items, 1, wpercentinfo)
                         end
@@ -701,6 +704,7 @@ function ListMenuItem:update()
                                 text = pages_left_str,
                                 face = wright_font_face,
                                 fgcolor = fgcolor,
+                                padding = 0,
                             }
                             table.insert(wright_items, 1, wpagesleftinfo)
                         end
@@ -711,6 +715,7 @@ function ListMenuItem:update()
                         text = fileinfo_str,
                         face = wright_font_face,
                         fgcolor = fgcolor,
+                        padding = 0,
                     }
                     table.insert(wright_items, 1, wfileinfo)
                 end
@@ -719,7 +724,7 @@ function ListMenuItem:update()
             if #wright_items > 0 then
                 for i, w in ipairs(wright_items) do
                     wright_width = math.max(wright_width, w:getSize().w)
-                    wright_height = math.max(wright_height, w:getSize().h)
+                    wright_height = wright_height + w:getSize().h
                 end
                 wright_right_padding = Screen:scaleBySize(10)
             end
@@ -731,7 +736,7 @@ function ListMenuItem:update()
                 -- portrait mode, will provide some padding
                 wmain_left_padding = Screen:scaleBySize(5)
             end
-            local wmain_right_padding = Screen:scaleBySize(10) -- used only for next calculation   
+            -- local wmain_right_padding = Screen:scaleBySize(10) -- used only for next calculation   
             local wmain_width = dimen.w - wleft_width - wmain_left_padding -- - wmain_right_padding - wright_width - wright_right_padding
 
             local fontname_title = title_serif
@@ -801,9 +806,10 @@ function ListMenuItem:update()
                 -- Let's show this fact in place of the anyway empty authors slot
                 authors = T(_("(no book information: %1)"), _(bookinfo.unsupported))
             end
+
             -- Build title and authors texts with decreasing font size
             -- till it fits in the space available
-            local build_title = function(height)
+            local build_title = function()
                 if wtitle then
                     wtitle:free(true)
                     wtitle = nil
@@ -834,13 +840,38 @@ function ListMenuItem:update()
                     --height = height,
                     --height_adjust = true,
                     --height_overflow_show_ellipsis = true,
+                    padding = 0,
                     truncate_with_ellipsis = true,
                     alignment = "left",
                     bold = bold_title,
                     fgcolor = fgcolor,
                 }
             end
-            local build_authors = function(height)
+
+            local build_multiline_title = function()
+                if wtitle then
+                    wtitle:free(true)
+                    wtitle = nil
+                end
+
+                wtitle = TextBoxWidget:new {
+                    text = title,
+                    lang = bookinfo.language,
+                    face = Font:getFace(fontname_title, fontsize_title),
+                    --max_width = wmain_width - wright_right_padding,
+                    width = wmain_width - wright_right_padding,
+                    --height = height,
+                    height_adjust = true,
+                    height_overflow_show_ellipsis = true,
+                    --padding = 0,
+                    --truncate_with_ellipsis = true,
+                    alignment = "left",
+                    bold = bold_title,
+                    fgcolor = fgcolor,
+                }
+            end
+
+            local build_authors = function(width)
                 if wauthors then
                     wauthors:free(true)
                     wauthors = nil
@@ -849,28 +880,34 @@ function ListMenuItem:update()
                     text = authors,
                     lang = bookinfo.language,
                     face = Font:getFace(fontname_authors, fontsize_authors),
-                    width = wmain_width - (wright_width + wright_right_padding),
-                    height = height,
+                    width = width,
+                    -- height = height,
                     height_adjust = true,
-                    height_overflow_show_ellipsis = true,
+                    -- height_overflow_show_ellipsis = true,
                     alignment = "left",
                     fgcolor = Blitbuffer.COLOR_GRAY_2,
                 }
             end
-            build_title()
-            while wtitle:isTruncated() do
-                if fontsize_title < 22 then
-                    break
-                end
-                fontsize_title = fontsize_title - fontsize_dec_step
-                build_title(fontsize_title)
-            end
+
+            --make title and author/wright fit within the line height
+            local authors_width = wmain_width - wright_right_padding
             while true do
                 build_title()
+                build_authors(authors_width)
+
+                -- if the single-line title is ... then reduce font to try fitting it
+                while wtitle:isTruncated() do
+                    -- logger.info("reducing truncated title font size")
+                    if fontsize_title <= 20 then
+                        break
+                    end
+                    fontsize_title = fontsize_title - fontsize_dec_step
+                    build_title()
+                end
+
                 local height = wtitle:getSize().h
-                build_authors()
                 height = height + wauthors:getSize().h
-                if height <= dimen.h then -- We fit!
+                if height <= dimen.h * 0.9 then -- We fit!
                     break
                 end
                 -- Don't go too low, and get out of this loop.
@@ -879,6 +916,7 @@ function ListMenuItem:update()
                     local title_line_height = wtitle:getLineHeight()
                     local title_min_height = 2 * title_line_height -- unscaled_size_check: ignore
                     local authors_height = authors and wauthors:getSize().h or 0
+                    authors_height = math.max(authors_height, wright_height)
                     local authors_line_height = authors and wauthors:getLineHeight() or 0
                     local authors_min_height = 2 * authors_line_height -- unscaled_size_check: ignore
                     -- Chop lines, starting with authors, until
@@ -893,37 +931,100 @@ function ListMenuItem:update()
                         end
                     end
                     if title_height < wtitle:getSize().h then
-                        build_title(title_height)
+                        build_title()
                     end
                     if authors and authors_height < wauthors:getSize().h then
-                        build_authors(authors_height)
+                        build_authors(authors_width)
                     end
                     break
                 end
                 -- If we don't fit, decrease both font sizes
                 fontsize_title = fontsize_title - fontsize_dec_step
                 fontsize_authors = fontsize_authors - fontsize_dec_step
-                logger.dbg(title, "recalculate title/author with", fontsize_title)
             end
 
+            -- if there is room for a 2+ line title, do it and max out the font size
+            local title_ismultiline = false
+            if wtitle:getSize().h * 2 < dimen.h * 0.9 - math.max(wauthors:getSize().h, wright_height) then
+                -- logger.info("making a two-line wtitle")
+                title_ismultiline = true
+                while wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) < dimen.h * 0.9 do
+                    build_multiline_title()
+                    if fontsize_title >= 26 then
+                        break
+                    end
+                    fontsize_title = fontsize_title + fontsize_dec_step
+                end
+            end
+
+            -- if the wider wauthors+wright doesn't fit, go back to a reduced width and reduce font sizes
+            if (dimen.h - wtitle:getSize().h < wauthors:getSize().h + wright_height) then
+                -- logger.info("making a reduced-width wauthors")
+                authors_width = wmain_width - (wright_width + wright_right_padding)
+                build_authors(authors_width)
+                while wauthors:getSize().h > dimen.h * 0.9 - wtitle:getSize().h do
+                    fontsize_authors = fontsize_authors - fontsize_dec_step
+                    fontsize_title = fontsize_title - fontsize_dec_step
+                    if title_ismultiline then
+                        build_multiline_title()
+                    else
+                        build_title()
+                    end
+                    build_authors(authors_width)
+                    if fontsize_authors <= 10 then
+                        break
+                    end
+                end
+            else
+                -- it did fit, so now pad wright vertically
+                table.insert(wright_items, 1, VerticalSpan:new { width = wauthors:getSize().h })
+            end
+
+            -- local title_padding = (dimen.h - math.max(wauthors:getSize().h, wright_height)) - Size.padding.tiny -- bottom align
+            local title_padding = wtitle:getSize().h + Size.padding.tiny -- top align (to title)
+
+            -- logger.info("dimen.h ", dimen.h )
+            -- logger.info("title ", title)
+            -- logger.info("authors ", authors)
+            -- logger.info("wtitle:getSize().h ", wtitle:getSize().h)
+            -- logger.info("wauthors:getSize().h ", wauthors:getSize().h)
+            -- logger.info("wauthors:getSize().w ", wauthors:getSize().w)
+            -- logger.info("fontsize_authors ", fontsize_authors)
+            -- logger.info("authors_width ", authors_width)
+            -- logger.info("wright_height ", wright_height)
+            -- logger.info("wright_width ", wright_width)
+            -- logger.info(" ", )
+
+            -- build the main widget which holds wtitle, wauthors, and wright
             local wmain = LeftContainer:new {
-                dimen = Geom:new { w = wmain_width, h = dimen.h },
+                dimen = dimen:copy(),
+                --dimen = Geom:new { w = wmain_width, h = dimen.h },
                 OverlapGroup:new {
                     TopContainer:new {
-                        dimen = Geom:new { w = wmain_width, h = dimen.h },
+                        dimen = dimen:copy(),
+                        --dimen = Geom:new { w = wmain_width, h = dimen.h },
                         VerticalGroup:new {
-                            VerticalSpan:new { width = wtitle:getSize().h },
+                            VerticalSpan:new { width = title_padding },
                             OverlapGroup:new {
                                 TopContainer:new {
-                                    dimen = Geom:new { w = wmain_width, h = dimen.h },
-                                    wauthors,
+                                    dimen = dimen:copy(),
+                                    --dimen = Geom:new { w = wmain_width, h = wauthors:getSize().h },
+                                    --VerticalGroup:new {
+                                        --align = "left",
+                                        --TopContainer:new {
+                                            --dimen = Geom:new { w = wmain_width, h = wauthors:getSize().h },
+                                            wauthors,
+                                        --},
+                                    --},
                                 },
                                 TopContainer:new {
-                                    dimen = Geom:new { w = wmain_width - wauthors:getSize().w, h = dimen.h },
+                                    dimen = dimen:copy(),
+                                    --dimen = Geom:new { w = wmain_width, h = wright_height },
                                     HorizontalGroup:new {
-                                        HorizontalSpan:new { width = wauthors:getSize().w },
-                                        RightContainer:new {
-                                            dimen = Geom:new { w = wmain_width - wright_right_padding - wauthors:getSize().w, h = dimen.h - wtitle:getSize().h },
+                                        HorizontalSpan:new { width = wmain_width - wright_width - wright_right_padding },
+                                        TopContainer:new {
+                                            dimen = dimen:copy(),
+                                            --dimen = Geom:new { w = wmain_width - wright_right_padding - wauthors:getSize().w, h = wright_height },
                                             VerticalGroup:new(wright_items),
                                         },
                                         HorizontalSpan:new { width = wright_right_padding },
@@ -933,7 +1034,7 @@ function ListMenuItem:update()
                         },
                     },
                     TopContainer:new {
-                        dimen = Geom:new { w = wmain_width, h = dimen.h },
+                        dimen = Geom:new { w = wmain_width, h = wtitle:getSize().h },
                         wtitle,
                     },
                 }

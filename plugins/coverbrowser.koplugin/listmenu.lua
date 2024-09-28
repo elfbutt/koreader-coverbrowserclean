@@ -932,8 +932,6 @@ function ListMenuItem:update()
 
             -- if there is room for a 2+ line title, do it and max out the font size
             local title_ismultiline = false
-            logger.info("wtitle:getSize().h ", wtitle:getSize().h)
-            logger.info("fontsize_title ", fontsize_title)
             if wtitle:getSize().h * 2 < avail_dimen_h - math.max(wauthors:getSize().h, wright_height) then
                 title_ismultiline = true
                 while wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) < avail_dimen_h do

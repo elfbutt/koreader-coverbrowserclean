@@ -41,6 +41,7 @@ if font1_missing or font2_missing or font3_missing or icons_missing or coverbrow
 end
 
 -- carry on...
+local Dispatcher = require("dispatcher")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local logger = require("logger")
@@ -115,10 +116,20 @@ function string.starts(String,Start)
     return string.sub(String,1,string.len(Start))==Start
 end
 
+local max_items_per_page = 10
+local min_items_per_page = 3
+local default_items_per_page = 7
+function CoverBrowser:onDispatcherRegisterActions()
+    Dispatcher:registerAction("dec_items_pp", { category = "none", event = "DecreaseItemsPerPage", title = _("Project Title: Decrease Items Per Page"), general=true, separator = false})
+    Dispatcher:registerAction("inc_items_pp", { category = "none", event = "IncreaseItemsPerPage", title = _("Project Title: Increase Items Per Page"), general=true, separator = false})
+end
+
 function CoverBrowser:init()
     if self.ui.file_chooser then -- FileManager menu only
         self.ui.menu:registerToMainMenu(self)
     end
+
+    self:onDispatcherRegisterActions()
 
     if init_done then -- things already patched according to current modes
         return
@@ -323,17 +334,17 @@ function CoverBrowser:addToMainMenu(menu_items)
                 text_func = function()
                     -- default files_per_page should be calculated by ListMenu on the first drawing,
                     -- use 7 if ListMenu has not been drawn yet
-                    return T(_("Items per page in portrait list mode: %1"), fc.files_per_page or 7)
+                    return T(_("Items per page in portrait list mode: %1"), fc.files_per_page or default_items_per_page)
                 end,
                 callback = function()
-                    local files_per_page = fc.files_per_page or 7
+                    local files_per_page = fc.files_per_page or default_items_per_page
                     local SpinWidget = require("ui/widget/spinwidget")
                     local widget = SpinWidget:new{
                         title_text = _("Portrait list mode"),
                         value = files_per_page,
-                        value_min = 3,
-                        value_max = 10,
-                        default_value = 7,
+                        value_min = min_items_per_page,
+                        value_max = max_items_per_page,
+                        default_value = default_items_per_page,
                         keep_shown_on_apply = true,
                         callback = function(spin)
                             fc.files_per_page = spin.value
@@ -357,37 +368,6 @@ function CoverBrowser:addToMainMenu(menu_items)
                 end,
                 separator = true,
             },
-            -- {
-            --     text = _("Progress"),
-            --     sub_item_table = {
-            --         {
-            --             text = _("Show progress in mosaic mode"),
-            --             checked_func = function() return BookInfoManager:getSetting("show_progress_in_mosaic") end,
-            --             callback = function()
-            --                 BookInfoManager:toggleSetting("show_progress_in_mosaic")
-            --                 fc:updateItems(1, true)
-            --             end,
-            --             separator = true,
-            --         },
-            --         {
-            --             text = _("Show progress in detailed list mode"),
-            --             checked_func = function() return not BookInfoManager:getSetting("hide_page_info") end,
-            --             callback = function()
-            --                 BookInfoManager:toggleSetting("hide_page_info")
-            --                 fc:updateItems(1, true)
-            --             end,
-            --         },
-            --         {
-            --             text = _("Show number of pages left to read"),
-            --             enabled_func = function() return not BookInfoManager:getSetting("hide_page_info") end,
-            --             checked_func = function() return BookInfoManager:getSetting("show_pages_left_in_progress") end,
-            --             callback = function()
-            --                 BookInfoManager:toggleSetting("show_pages_left_in_progress")
-            --                 fc:updateItems(1, true)
-            --             end,
-            --         },
-            --     },
-            -- },
             {
                 text = _("Display hints"),
                 sub_item_table = {
@@ -879,6 +859,26 @@ function CoverBrowser:extractBooksInDirectory(path)
     Trapper:wrap(function()
         BookInfoManager:extractBooksInDirectory(path)
     end)
+end
+
+-- Gesturable: Increase items per page in portrait mode (makes items smaller)
+function CoverBrowser:onIncreaseItemsPerPage()
+    local fc = self.ui.file_chooser
+    local files_per_page = fc.files_per_page or default_items_per_page
+    files_per_page = math.min(files_per_page + 1, max_items_per_page)
+    BookInfoManager:saveSetting("files_per_page", files_per_page)
+    FileChooser.files_per_page = files_per_page
+    fc:updateItems()
+end
+
+-- Gesturable: Decrease items per page in portrait mode (makes items bigger)
+function CoverBrowser:onDecreaseItemsPerPage()
+    local fc = self.ui.file_chooser
+    local files_per_page = fc.files_per_page or default_items_per_page
+    files_per_page = math.max(files_per_page - 1, min_items_per_page)
+    BookInfoManager:saveSetting("files_per_page", files_per_page)
+    FileChooser.files_per_page = files_per_page
+    fc:updateItems()
 end
 
 return CoverBrowser

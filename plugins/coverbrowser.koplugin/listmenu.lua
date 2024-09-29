@@ -255,6 +255,7 @@ function ListMenuItem:update()
             local files_count = string.match(self.mandatory, "(%d+) \u{F016}")
             local folder_text = "Folder"
             local file_text = "Book"
+            wright_font_face = Font:getFace(good_sans, _fontSize(15, 19))
 
             -- add file or folder counts as necessary with pluralization (english)
             if folder_count then
@@ -500,7 +501,7 @@ function ListMenuItem:update()
             local filename_without_suffix, filetype = filemanagerutil.splitFileNameType(filename)
             local fileinfo_str
             if bookinfo._no_provider then
-                -- for unspported files: don't show extension on the right,
+                -- for unsupported files: don't show extension on the right,
                 -- keep it in filename
                 filename_without_suffix = filename
                 fileinfo_str = self.mandatory
@@ -661,7 +662,7 @@ function ListMenuItem:update()
                             pages_left_str = T(_("%1 pages left"), Math.round(pages - percent_finished * pages), pages)
                         end
                     end
-                else
+                elseif not bookinfo._no_provider then
                     progress_str = unread_text
                 end
 
@@ -717,6 +718,14 @@ function ListMenuItem:update()
                     }
                     table.insert(wright_items, 1, wfileinfo)
                 end
+            else
+                local wfileinfo = TextWidget:new {
+                    text = fileinfo_str,
+                    face = wright_font_face,
+                    fgcolor = fgcolor,
+                    padding = 0,
+                }
+                table.insert(wright_items, 1, wfileinfo)
             end
 
             if #wright_items > 0 then
@@ -995,6 +1004,20 @@ function ListMenuItem:update()
                 logger.info("wright_width ", wright_width)
             end
 
+            -- style files differently in pathchooser
+            local wtitle_container
+            if is_pathchooser == true and not bookinfo.authors then
+                wtitle_container = LeftContainer:new {
+                    dimen = Geom:new { w = wmain_width, h = dimen.h },
+                    wtitle,
+                }
+            else
+                wtitle_container = TopContainer:new {
+                    dimen = Geom:new { w = wmain_width - wright_width - wright_right_padding, h = wtitle:getSize().h },
+                    wtitle,
+                }
+            end
+
             -- build the main widget which holds wtitle, wauthors, and wright
             local wmain = LeftContainer:new {
                 dimen = dimen:copy(),
@@ -1022,10 +1045,7 @@ function ListMenuItem:update()
                             },
                         },
                     },
-                    TopContainer:new {
-                        dimen = Geom:new { w = wmain_width, h = wtitle:getSize().h },
-                        wtitle,
-                    },
+                    wtitle_container
                 }
             }
 

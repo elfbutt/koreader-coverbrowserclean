@@ -515,15 +515,79 @@ function ListMenuItem:update()
             local wright_height = 0
             local wright_items = { align = "right" }
 
-            -- build book-sized progress bar based on calibre plugin page count if present in filename
-            local fn_page_count = string.match(filename_without_suffix, "P%((%d+)%)")
-            if fn_page_count and
+            -- build book-sized progress bar based on estimated page count (if available)
+            local function getEstimatedPagecount(fname)
+                -- -- Check db first for a cached value
+                -- if bookinfo.pages and bookinfo.pages > 0 then return bookinfo.pages end
+                -- -- Then check filename
+                -- local fn_pagecount = string.match(filename_without_suffix, "P%((%d+)%)")
+                -- if fn_pagecount and fn_pagecount ~= "0" then
+                --     BookInfoManager:setBookInfoProperties(fname, { ["pages"] = fn_pagecount })
+                --     return fn_pagecount
+                -- end
+                -- Then check epub (and only epub) metadata
+                if filetype ~= "epub" then return nil end
+                local std_out = io.popen("unzip ".."-lqq \""..fname.."\" \"*.opf\"")
+                local opf_file
+                if std_out then
+                    opf_file = string.match(std_out:read(), "%s+%d+%s+%S+%s+%S+%s+(.+%.[^.]+)$")
+                    std_out:close()
+                end
+                if opf_file then
+                    std_out = io.popen("unzip ".."-p \""..fname.."\" ".."\""..opf_file.."\"")
+                    local found_pages = nil
+                    local found_value = nil
+                    if std_out then
+                        for line in std_out:lines() do
+                            if found_pages then
+                                -- multiline format, keep looking for the #values# line
+                                found_value = string.match(line, "\"#value#\": (%d+),")
+                                if found_value then
+                                    std_out:close()
+                                    BookInfoManager:setBookInfoProperties(fname, { ["pages"] = found_value })
+                                    return found_value
+                                end
+                                -- why category_sort? because it's always there and the props are stored aphabetically
+                                -- so if we reach that before finding #value# it means there isn't one, which can happen
+                                if string.match(line, "\"category_sort\":") then
+                                    -- pages column found but held no #value# property, store 0 to prevent checking again
+                                    BookInfoManager:setBookInfoProperties(fname, { ["pages"] = 0 })
+                                    return nil
+                                end
+                            else
+                                found_pages = string.match(line, "#pages")
+                                -- check for single line format
+                                found_value = string.match(line, "&quot;#value#&quot;: (%d+),")
+                                if found_value then
+                                    std_out:close()
+                                    BookInfoManager:setBookInfoProperties(fname, { ["pages"] = found_value })
+                                    return found_value
+                                end
+                            end
+                        end
+                        -- column data not found, store 0 to prevent checking again
+                        BookInfoManager:setBookInfoProperties(fname, { ["pages"] = 0 })
+                        return nil
+                    end
+                else
+                    -- opf file not found, store 0 to prevent checking again
+                    BookInfoManager:setBookInfoProperties(fname, { ["pages"] = 0 })
+                    return nil
+                end
+            end
+
+            local est_page_count = getEstimatedPagecount(self.filepath)
+            if not est_page_count then
+                logger.info("not found: ", filename_without_suffix)
+            end
+
+            if est_page_count and
                         not BookInfoManager:getSetting("hide_page_info") and
                         not BookInfoManager:getSetting("show_pages_read_as_progress") and
                         is_pathchooser == false then
                 local progressbar_items = { align = "center" }
 
-                local fn_pages = tonumber(fn_page_count)
+                local fn_pages = tonumber(est_page_count)
                 local max_progress_size = 235
                 local pixels_per_page = 3
                 local min_progress_size = 25

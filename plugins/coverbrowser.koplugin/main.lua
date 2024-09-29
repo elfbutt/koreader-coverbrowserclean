@@ -120,8 +120,8 @@ local max_items_per_page = 10
 local min_items_per_page = 3
 local default_items_per_page = 7
 function CoverBrowser:onDispatcherRegisterActions()
-    Dispatcher:registerAction("dec_items_pp", { category = "none", event = "DecreaseItemsPerPage", title = _("Project Title: Decrease Items Per Page"), general=true, separator = false})
-    Dispatcher:registerAction("inc_items_pp", { category = "none", event = "IncreaseItemsPerPage", title = _("Project Title: Increase Items Per Page"), general=true, separator = false})
+    Dispatcher:registerAction("dec_items_pp", { category = "none", event = "DecreaseItemsPerPage", title = _("Project Title: Decrease Items Per Page"), filemanager=true, separator = false})
+    Dispatcher:registerAction("inc_items_pp", { category = "none", event = "IncreaseItemsPerPage", title = _("Project Title: Increase Items Per Page"), filemanager=true, separator = false})
 end
 
 function CoverBrowser:init()

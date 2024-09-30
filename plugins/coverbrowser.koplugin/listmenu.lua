@@ -517,15 +517,15 @@ function ListMenuItem:update()
 
             -- build book-sized progress bar based on estimated page count (if available)
             local function getEstimatedPagecount(fname)
-                -- -- Check db first for a cached value
-                -- if bookinfo.pages and bookinfo.pages > 0 then return bookinfo.pages end
-                -- -- Then check filename
-                -- local fn_pagecount = string.match(filename_without_suffix, "P%((%d+)%)")
-                -- if fn_pagecount and fn_pagecount ~= "0" then
-                --     BookInfoManager:setBookInfoProperties(fname, { ["pages"] = fn_pagecount })
-                --     return fn_pagecount
-                -- end
-                -- Then check epub (and only epub) metadata
+                -- Check db first for a cached value...
+                if bookinfo.pages and bookinfo.pages > 0 then return bookinfo.pages end
+                -- ...Then check filename...
+                local fn_pagecount = string.match(filename_without_suffix, "P%((%d+)%)")
+                if fn_pagecount and fn_pagecount ~= "0" then
+                    BookInfoManager:setBookInfoProperties(fname, { ["pages"] = fn_pagecount })
+                    return fn_pagecount
+                end
+                -- ...Then check epub (and only epub) metadata
                 if filetype ~= "epub" then return nil end
                 local std_out = io.popen("unzip ".."-lqq \""..fname.."\" \"*.opf\"")
                 local opf_file
@@ -542,45 +542,29 @@ function ListMenuItem:update()
                             if found_pages then
                                 -- multiline format, keep looking for the #values# line
                                 found_value = string.match(line, "\"#value#\": (%d+),")
-                                if found_value then
-                                    std_out:close()
-                                    BookInfoManager:setBookInfoProperties(fname, { ["pages"] = found_value })
-                                    return found_value
-                                end
-                                -- why category_sort? because it's always there and the props are stored aphabetically
+                                if found_value then break end
+                                -- why category_sort? because it's always there and the props are stored alphabetically
                                 -- so if we reach that before finding #value# it means there isn't one, which can happen
-                                if string.match(line, "\"category_sort\":") then
-                                    -- pages column found but held no #value# property, store 0 to prevent checking again
-                                    BookInfoManager:setBookInfoProperties(fname, { ["pages"] = 0 })
-                                    return nil
-                                end
+                                if string.match(line, "\"category_sort\":") then break end
                             else
                                 found_pages = string.match(line, "#pages")
                                 -- check for single line format
                                 found_value = string.match(line, "&quot;#value#&quot;: (%d+),")
-                                if found_value then
-                                    std_out:close()
-                                    BookInfoManager:setBookInfoProperties(fname, { ["pages"] = found_value })
-                                    return found_value
-                                end
+                                if found_value then break end
                             end
                         end
-                        -- column data not found, store 0 to prevent checking again
-                        BookInfoManager:setBookInfoProperties(fname, { ["pages"] = 0 })
-                        return nil
+                        std_out:close()
+                        if found_value then
+                            BookInfoManager:setBookInfoProperties(fname, { ["pages"] = found_value })
+                            return found_value
+                        end
                     end
-                else
-                    -- opf file not found, store 0 to prevent checking again
-                    BookInfoManager:setBookInfoProperties(fname, { ["pages"] = 0 })
-                    return nil
                 end
+                -- opf:pages:value not found store 0 to prevent checking again
+                BookInfoManager:setBookInfoProperties(fname, { ["pages"] = 0 })
+                return nil
             end
-
             local est_page_count = getEstimatedPagecount(self.filepath)
-            if not est_page_count then
-                logger.info("not found: ", filename_without_suffix)
-            end
-
             if est_page_count and
                         not BookInfoManager:getSetting("hide_page_info") and
                         not BookInfoManager:getSetting("show_pages_read_as_progress") and

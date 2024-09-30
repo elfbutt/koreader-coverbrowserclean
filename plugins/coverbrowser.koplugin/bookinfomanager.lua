@@ -9,6 +9,7 @@ local InfoMessage = require("ui/widget/infomessage")
 local RenderImage = require("ui/renderimage")
 local SQ3 = require("lua-ljsqlite3/init")
 local UIManager = require("ui/uimanager")
+local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
@@ -485,13 +486,52 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
             if not document:loadDocument(false) then -- load only metadata
                 -- failed loading, calling other methods would segfault
                 loaded = false
+            else
+                -- for credocument, number of pages returned by document:getPageCount() is wrong
+                -- so instead, try finding pagecount in filename or calibre metadata
+                local function getEstimatedPagecount(fname)
+                    local filename_without_suffix, filetype = filemanagerutil.splitFileNameType(fname)
+                    local fn_pagecount = string.match(filename_without_suffix, "P%((%d+)%)")
+                    if fn_pagecount and fn_pagecount ~= "0" then
+                        return fn_pagecount
+                    end
+                    if filetype ~= "epub" then return nil end
+                    local std_out = io.popen("unzip ".."-lqq \""..fname.."\" \"*.opf\"")
+                    local opf_file
+                    if std_out then
+                        opf_file = string.match(std_out:read(), "%s+%d+%s+%S+%s+%S+%s+(.+%.[^.]+)$")
+                        std_out:close()
+                    end
+                    if opf_file then
+                        std_out = io.popen("unzip ".."-p \""..fname.."\" ".."\""..opf_file.."\"")
+                        local found_pages = nil
+                        local found_value = nil
+                        if std_out then
+                            for line in std_out:lines() do
+                                if found_pages then
+                                    -- multiline format, keep looking for the #values# line
+                                    found_value = string.match(line, "\"#value#\": (%d+),")
+                                    if found_value then break end
+                                    -- why category_sort? because it's always there and the props are stored alphabetically
+                                    -- so if we reach that before finding #value# it means there isn't one, which can happen
+                                    if string.match(line, "\"category_sort\":") then break end
+                                else
+                                    found_pages = string.match(line, "#pages")
+                                    -- check for single line format
+                                    found_value = string.match(line, "&quot;#value#&quot;: (%d+),")
+                                    if found_value then break end
+                                end
+                            end
+                            std_out:close()
+                            if found_value ~= "0" then
+                                return found_value
+                            end
+                        end
+                    end
+                    return nil
+                end
+                pages = getEstimatedPagecount(filepath)
             end
-            -- For CreDocument, we would need to call document:render()
-            -- to get nb of pages, but the nb obtained by simply calling
-            -- here document:getPageCount() is wrong, often 2 to 3 times
-            -- the nb of pages we see when opening the document (may be
-            -- some other cre settings should be applied before calling
-            -- render() ?)
         else
             -- for all others than crengine, we seem to get an accurate nb of pages
             pages = document:getPageCount()

@@ -515,56 +515,7 @@ function ListMenuItem:update()
             local wright_height = 0
             local wright_items = { align = "right" }
 
-            -- build book-sized progress bar based on estimated page count (if available)
-            local function getEstimatedPagecount(fname)
-                -- Check db first for a cached value...
-                if bookinfo.pages and bookinfo.pages > 0 then return bookinfo.pages end
-                -- ...Then check filename...
-                local fn_pagecount = string.match(filename_without_suffix, "P%((%d+)%)")
-                if fn_pagecount and fn_pagecount ~= "0" then
-                    BookInfoManager:setBookInfoProperties(fname, { ["pages"] = fn_pagecount })
-                    return fn_pagecount
-                end
-                -- ...Then check epub (and only epub) metadata
-                if filetype ~= "epub" then return nil end
-                local std_out = io.popen("unzip ".."-lqq \""..fname.."\" \"*.opf\"")
-                local opf_file
-                if std_out then
-                    opf_file = string.match(std_out:read(), "%s+%d+%s+%S+%s+%S+%s+(.+%.[^.]+)$")
-                    std_out:close()
-                end
-                if opf_file then
-                    std_out = io.popen("unzip ".."-p \""..fname.."\" ".."\""..opf_file.."\"")
-                    local found_pages = nil
-                    local found_value = nil
-                    if std_out then
-                        for line in std_out:lines() do
-                            if found_pages then
-                                -- multiline format, keep looking for the #values# line
-                                found_value = string.match(line, "\"#value#\": (%d+),")
-                                if found_value then break end
-                                -- why category_sort? because it's always there and the props are stored alphabetically
-                                -- so if we reach that before finding #value# it means there isn't one, which can happen
-                                if string.match(line, "\"category_sort\":") then break end
-                            else
-                                found_pages = string.match(line, "#pages")
-                                -- check for single line format
-                                found_value = string.match(line, "&quot;#value#&quot;: (%d+),")
-                                if found_value then break end
-                            end
-                        end
-                        std_out:close()
-                        if found_value then
-                            BookInfoManager:setBookInfoProperties(fname, { ["pages"] = found_value })
-                            return found_value
-                        end
-                    end
-                end
-                -- opf:pages:value not found store 0 to prevent checking again
-                BookInfoManager:setBookInfoProperties(fname, { ["pages"] = 0 })
-                return nil
-            end
-            local est_page_count = getEstimatedPagecount(self.filepath)
+            local est_page_count = bookinfo.pages or nil
             if est_page_count and
                         not BookInfoManager:getSetting("hide_page_info") and
                         not BookInfoManager:getSetting("show_pages_read_as_progress") and

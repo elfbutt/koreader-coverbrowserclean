@@ -127,9 +127,8 @@ end
 function CoverBrowser:init()
     if self.ui.file_chooser then -- FileManager menu only
         self.ui.menu:registerToMainMenu(self)
+        self:onDispatcherRegisterActions()
     end
-
-    self:onDispatcherRegisterActions()
 
     if init_done then -- things already patched according to current modes
         return
@@ -151,6 +150,7 @@ function CoverBrowser:init()
         BookInfoManager:saveSetting("unified_display_mode", true)
         BookInfoManager:saveSetting("show_progress_in_mosaic", true)
         G_reader_settings:makeTrue("coverbrowser_initial_default_setup_done2")
+        UIManager:restartKOReader()
     end
 
     self:setupFileManagerDisplayMode(BookInfoManager:getSetting("filemanager_display_mode"))

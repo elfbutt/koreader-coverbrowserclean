@@ -807,13 +807,19 @@ local function findFilesInDir(path, recursive)
 end
 
 -- Batch extraction
-function BookInfoManager:extractBooksInDirectory(path, cover_specs)
+function BookInfoManager:extractBooksInDirectory(path, cover_specs, autorun)
     local Geom = require("ui/geometry")
     local TopContainer = require("ui/widget/container/topcontainer")
     local Trapper = require("ui/trapper")
     local Screen = require("device").screen
 
-    local go_on = Trapper:confirm(_([[
+    local automatic_mode = autorun or false
+    local go_on
+    local recursive
+    local refresh_existing
+    local prune
+    if not automatic_mode then
+        go_on = Trapper:confirm(_([[
 This will extract metadata and cover images from books in the current directory.
 Once extraction has started, you can abort at any moment by tapping on the screen.
 
@@ -821,35 +827,40 @@ Cover images will be saved with the adequate size for the current display mode.
 If you later change display mode, they may need to be extracted again.
 
 This extraction may take time and use some battery power: you may wish to keep your device plugged in.]]
-    ), _("Cancel"), _("Continue"))
-    if not go_on then
-        return
-    end
+        ), _("Cancel"), _("Continue"))
+        if not go_on then
+            return
+        end
 
-    local recursive = Trapper:confirm(_([[
+        recursive = Trapper:confirm(_([[
 Also extract book information from books in subdirectories?]]
-    ),
-        -- @translators Extract book information only for books in this directory.
-        _("Here only"),
-        -- @translators Extract book information for books in this directory as well as in subdirectories.
-        _("Here and under"))
+            ),
+            -- @translators Extract book information only for books in this directory.
+            _("Here only"),
+            -- @translators Extract book information for books in this directory as well as in subdirectories.
+            _("Here and under"))
 
-    local refresh_existing = Trapper:confirm(_([[
+        refresh_existing = Trapper:confirm(_([[
 Do you want to refresh metadata and covers that have already been extracted?]]
-    ), _("Don't refresh"), _("Refresh"))
+        ), _("Don't refresh"), _("Refresh"))
 
-    local prune = Trapper:confirm(_([[
+        prune = Trapper:confirm(_([[
 If you have removed many books, or have renamed some directories, it is good to remove them from the cache database.
 
 Do you want to prune the cache of removed books?]]
-    ), _("Don't prune"), _("Prune"))
+        ), _("Don't prune"), _("Prune"))
 
-    Trapper:clear()
+        Trapper:clear()
+    else
+        go_on = true
+        recursive = true
+        refresh_existing = false
+        prune = false
+    end
 
     local confirm_abort = function()
         return Trapper:confirm(_("Do you want to abort extraction?"), _("Don't abort"), _("Abort"))
     end
-
     -- Cancel any background job, before we launch new ones
     self:terminateBackgroundJobs()
 
@@ -858,7 +869,7 @@ Do you want to prune the cache of removed books?]]
         local summary
         while true do
             info = InfoMessage:new{text = _("Pruning cache of removed books…")}
-            UIManager:show(info)
+            if not automatic_mode then UIManager:show(info) end
             UIManager:forceRePaint()
             completed, summary = Trapper:dismissableRunInSubprocess(function()
                 return self:removeNonExistantEntries()
@@ -882,7 +893,7 @@ Do you want to prune the cache of removed books?]]
     local files
     while true do
         info = InfoMessage:new{text = _("Looking for books to index…")}
-        UIManager:show(info)
+        if not automatic_mode then UIManager:show(info) end
         UIManager:forceRePaint()
         completed, files = Trapper:dismissableRunInSubprocess(function()
             local filepaths = findFilesInDir(path, recursive)
@@ -895,7 +906,7 @@ Do you want to prune the cache of removed books?]]
             end
         elseif not files or #files == 0 then
             UIManager:close(info)
-            info = InfoMessage:new{text = _("No books were found.")}
+            if not automatic_mode then info = InfoMessage:new{text = _("No books were found.")} end
             UIManager:show(info)
             return
         else
@@ -906,7 +917,7 @@ Do you want to prune the cache of removed books?]]
 
     if refresh_existing then
         info = InfoMessage:new{text = T(N_("Found 1 book to index.", "Found %1 books to index.", #files), #files)}
-        UIManager:show(info)
+        if not automatic_mode then UIManager:show(info) end
         UIManager:forceRePaint()
         FFIUtil.sleep(2) -- Let the user see that
     else
@@ -923,9 +934,9 @@ Do you want to prune the cache of removed books?]]
                     local to_extract = not bookinfo
                     if bookinfo and cover_specs and not bookinfo.ignore_cover then
                         if bookinfo.cover_fetched then
-                            if bookinfo.has_cover and BookInfoManager.isCachedCoverInvalid(bookinfo, cover_specs) then
+                            --if bookinfo.has_cover and BookInfoManager.isCachedCoverInvalid(bookinfo, cover_specs) then
                                 -- skip this. we're storing a single thumbnail res and that's it.
-                            end
+                            --end
                         else
                             to_extract = true
                         end
@@ -943,7 +954,7 @@ Do you want to prune the cache of removed books?]]
             elseif not files or #files == 0 then
                 UIManager:close(info)
                 info = InfoMessage:new{text = _("No books were found that need to be indexed.")}
-                UIManager:show(info)
+                if not automatic_mode then UIManager:show(info) end
                 return
             else
                 break
@@ -951,9 +962,9 @@ Do you want to prune the cache of removed books?]]
         end
         UIManager:close(info)
         info = InfoMessage:new{text = T(N_("Found 1 book to index.", "Found %1 books to index."), #files)}
-        UIManager:show(info)
+        if not automatic_mode then UIManager:show(info) end
         UIManager:forceRePaint()
-        FFIUtil.sleep(2) -- Let the user see that
+        if not automatic_mode then FFIUtil.sleep(2) end -- Let the user see that
     end
     UIManager:close(info)
 

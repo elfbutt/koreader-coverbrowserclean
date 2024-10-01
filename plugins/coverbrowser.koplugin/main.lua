@@ -130,6 +130,14 @@ function CoverBrowser:init()
         self:onDispatcherRegisterActions()
     end
 
+    local Trapper = require("ui/trapper")
+    local current_path = G_reader_settings:readSetting("home_dir")
+    local current_cover_specs = self.cover_specs
+    Trapper:wrap(function()
+        logger.info("wrapped trap")
+        BookInfoManager:extractBooksInDirectory(current_path, current_cover_specs, true)
+    end)
+
     if init_done then -- things already patched according to current modes
         return
     end

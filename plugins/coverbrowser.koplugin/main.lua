@@ -127,7 +127,6 @@ end
 function CoverBrowser:init()
     if self.ui.file_chooser then -- FileManager menu only
         self.ui.menu:registerToMainMenu(self)
-        self:onDispatcherRegisterActions()
     end
 
     if init_done then -- things already patched according to current modes
@@ -163,10 +162,10 @@ function CoverBrowser:init()
     local current_path = G_reader_settings:readSetting("home_dir")
     local current_cover_specs = self.cover_specs
     Trapper:wrap(function()
-        logger.info("wrapped trap")
         BookInfoManager:extractBooksInDirectory(current_path, current_cover_specs, true)
     end)
 
+    self:onDispatcherRegisterActions()
     BookInfoManager:closeDbConnection() -- will be re-opened if needed
 end
 

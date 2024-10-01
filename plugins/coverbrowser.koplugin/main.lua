@@ -41,7 +41,9 @@ if font1_missing or font2_missing or font3_missing or icons_missing or coverbrow
 end
 
 -- carry on...
+local FFIUtil = require("ffi/util")
 local Dispatcher = require("dispatcher")
+local Trapper = require("ui/trapper")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local logger = require("logger")
@@ -134,7 +136,7 @@ function CoverBrowser:init()
     end
 
     -- Set up default display modes on first launch
-    if not G_reader_settings:isTrue("coverbrowser_initial_default_setup_done2") then
+    if not G_reader_settings:isTrue("aaaProjectTitle_initial_default_setup_done2") then
         -- Only if no display mode has been set yet
         if not BookInfoManager:getSetting("filemanager_display_mode")
             and not BookInfoManager:getSetting("history_display_mode") then
@@ -148,23 +150,26 @@ function CoverBrowser:init()
         BookInfoManager:saveSetting("hide_file_info", true)
         BookInfoManager:saveSetting("unified_display_mode", true)
         BookInfoManager:saveSetting("show_progress_in_mosaic", true)
-        G_reader_settings:makeTrue("coverbrowser_initial_default_setup_done2")
+        BookInfoManager:saveSetting("autoscan_on_eject", false)
+        G_reader_settings:makeTrue("aaaProjectTitle_initial_default_setup_done2")
         UIManager:restartKOReader()
+        FFIUtil.sleep(2)
     end
 
     self:setupFileManagerDisplayMode(BookInfoManager:getSetting("filemanager_display_mode"))
     self:setupHistoryDisplayMode(BookInfoManager:getSetting("history_display_mode"))
     self:setupCollectionDisplayMode(BookInfoManager:getSetting("collection_display_mode"))
     series_mode = BookInfoManager:getSetting("series_mode")
+
+    local home_dir = G_reader_settings:readSetting("home_dir")
+    if home_dir and BookInfoManager:getSetting("autoscan_on_eject") then
+        local cover_specs = { max_cover_w = 1, max_cover_h = 1, }
+        Trapper:wrap(function()
+            BookInfoManager:extractBooksInDirectory(home_dir, cover_specs, true)
+        end)
+    end
+
     init_done = true
-
-    local Trapper = require("ui/trapper")
-    local current_path = G_reader_settings:readSetting("home_dir")
-    local current_cover_specs = self.cover_specs
-    Trapper:wrap(function()
-        BookInfoManager:extractBooksInDirectory(current_path, current_cover_specs, true)
-    end)
-
     self:onDispatcherRegisterActions()
     BookInfoManager:closeDbConnection() -- will be re-opened if needed
 end
@@ -238,7 +243,7 @@ function CoverBrowser:addToMainMenu(menu_items)
     if menu_items.filebrowser_settings == nil then return end
     local fc = self.ui.file_chooser
     table.insert (menu_items.filebrowser_settings.sub_item_table, 5, {
-        text = _("Mosaic and detailed list settings"),
+        text = _("Project Title settings"),
         separator = true,
         sub_item_table = {
             {
@@ -377,27 +382,6 @@ function CoverBrowser:addToMainMenu(menu_items)
                 separator = true,
             },
             {
-                text = _("Display hints"),
-                sub_item_table = {
-                    {
-                        text = _("Show hint for book status in history"),
-                        checked_func = function() return BookInfoManager:getSetting("history_hint_opened") end,
-                        callback = function()
-                            BookInfoManager:toggleSetting("history_hint_opened")
-                            fc:updateItems(1, true)
-                        end,
-                    },
-                    {
-                        text = _("Show hint for book status in collections"),
-                        checked_func = function() return BookInfoManager:getSetting("collections_hint_opened") end,
-                        callback = function()
-                            BookInfoManager:toggleSetting("collections_hint_opened")
-                            fc:updateItems(1, true)
-                        end,
-                    }
-                }
-            },
-            {
                 text = _("Show series metadata"),
                 checked_func = function() return series_mode == "series_in_separate_line" end,
                 callback = function()
@@ -433,21 +417,42 @@ function CoverBrowser:addToMainMenu(menu_items)
                     end
                     fc:updateItems(1, true)
                 end,
+            },
+            {
+                text = _("Display hints"),
+                sub_item_table = {
+                    {
+                        text = _("Show hint for book status in history"),
+                        checked_func = function() return BookInfoManager:getSetting("history_hint_opened") end,
+                        callback = function()
+                            BookInfoManager:toggleSetting("history_hint_opened")
+                            fc:updateItems(1, true)
+                        end,
+                    },
+                    {
+                        text = _("Show hint for book status in collections"),
+                        checked_func = function() return BookInfoManager:getSetting("collections_hint_opened") end,
+                        callback = function()
+                            BookInfoManager:toggleSetting("collections_hint_opened")
+                            fc:updateItems(1, true)
+                        end,
+                    }
+                },
                 separator = true,
             },
             {
-                text = _("Book info cache management"),
+                text = _("Book covers and info database"),
                 sub_item_table = {
                     {
-                        text_func = function() -- add current db size to menu text
-                            local sstr = BookInfoManager:getDbSize()
-                            return _("Current cache size: ") .. sstr
+                        text = _("Scan for new books at startup and USB eject"),
+                        checked_func = function() return BookInfoManager:getSetting("autoscan_on_eject") end,
+                        callback = function()
+                            BookInfoManager:toggleSetting("autoscan_on_eject")
+                            fc:updateItems(1, true)
                         end,
-                        keep_menu_open = true,
-                        callback = function() end, -- no callback, only for information
                     },
                     {
-                        text = _("Prune cache of removed books"),
+                        text = _("Prune cache of removed books..."),
                         keep_menu_open = true,
                         callback = function()
                             local ConfirmBox = require("ui/widget/confirmbox")
@@ -470,7 +475,7 @@ function CoverBrowser:addToMainMenu(menu_items)
                         end,
                     },
                     {
-                        text = _("Compact cache database"),
+                        text = _("Compact cache database..."),
                         keep_menu_open = true,
                         callback = function()
                             local ConfirmBox = require("ui/widget/confirmbox")
@@ -492,7 +497,7 @@ function CoverBrowser:addToMainMenu(menu_items)
                         end,
                     },
                     {
-                        text = _("Delete cache database"),
+                        text = _("Delete cache database..."),
                         keep_menu_open = true,
                         callback = function()
                             local ConfirmBox = require("ui/widget/confirmbox")
@@ -505,6 +510,15 @@ function CoverBrowser:addToMainMenu(menu_items)
                                 end
                             })
                         end,
+                        separator = true,
+                    },
+                    {
+                        text_func = function() -- add current db size to menu text
+                            local sstr = BookInfoManager:getDbSize()
+                            return _("Current cache size: ") .. sstr
+                        end,
+                        keep_menu_open = true,
+                        callback = function() end, -- no callback, only for information
                     },
                 },
             },

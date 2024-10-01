@@ -108,6 +108,8 @@ for i=1, #BOOKINFO_COLS_SET do
     table.insert(bookinfo_values_sql, "?")
 end
 
+local max_cover_dimen = 800
+
 -- Build our most often used SQL queries according to columns
 local BOOKINFO_INSERT_SQL = "INSERT OR REPLACE INTO bookinfo " ..
                             "(" .. table.concat(BOOKINFO_COLS_SET, ",") .. ") " ..
@@ -546,9 +548,9 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
                 dbrow[k] = v
             end
             if cover_specs then
-                -- make a single cover at a fixed max and keep it forever
-                local spec_max_cover_w = 800
-                local spec_max_cover_h = 800
+                -- ignore passed cover_specs, make cover at a fixed maximum and keep it forever
+                local spec_max_cover_w = max_cover_dimen
+                local spec_max_cover_h = max_cover_dimen
                 dbrow.cover_fetched = 'Y' -- we had a try at getting a cover
                 local cover_bb = FileManagerBookInfo:getCoverImage(document)
                 if cover_bb then
@@ -923,7 +925,7 @@ Do you want to prune the cache of removed books?]]
     else
         local all_files = files
         while true do
-            info = InfoMessage:new{text = T(_("Found %1 books.\nLooking for those not already present in the cache database…"), #all_files)}
+            info = InfoMessage:new{text = T(_("Found %1 books.\nLooking for new books…"), #all_files)}
             UIManager:show(info)
             UIManager:forceRePaint()
             FFIUtil.sleep(2) -- Let the user see that
@@ -953,7 +955,7 @@ Do you want to prune the cache of removed books?]]
                 end
             elseif not files or #files == 0 then
                 UIManager:close(info)
-                info = InfoMessage:new{text = _("No books were found that need to be indexed.")}
+                info = InfoMessage:new{text = _("No new books found.")}
                 if not automatic_mode then UIManager:show(info) end
                 return
             else
@@ -986,7 +988,7 @@ Do you want to prune the cache of removed books?]]
 
         local orig_moved_offset = info.movable:getMovedOffset()
         info:free()
-        info.text = T(_("Indexing %1 / %2…\n\n%3"), i, nb_files, BD.filename(filename))
+        info.text = T(_("Indexing %1 / %2…\n\nTap anywhere on screen to stop.\n\n%3"), i, nb_files, BD.filename(filename))
         info:init()
         local text_widget = table.remove(info.movable[1][1], 3)
         local text_widget_size = text_widget:getSize()

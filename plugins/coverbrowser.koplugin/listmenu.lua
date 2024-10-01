@@ -360,13 +360,7 @@ function ListMenuItem:update()
             if bookinfo.cover_fetched then
                 if bookinfo.has_cover and not self.menu.no_refresh_covers then
                     if BookInfoManager.isCachedCoverInvalid(bookinfo, cover_specs) then
-                        -- there is a thumbnail, but it's smaller than is needed for new grid dimensions,
-                        -- and it would be ugly if scaled up to the required size:
-                        -- do as if not found to force a new extraction with our size
-                        if bookinfo.cover_bb then
-                            bookinfo.cover_bb:free()
-                        end
-                        bookinfo = nil
+                        -- skip this. we're storing a single thumbnail res and that's it.
                     end
                 end
                 -- if not has_cover, book has no cover, no need to try again

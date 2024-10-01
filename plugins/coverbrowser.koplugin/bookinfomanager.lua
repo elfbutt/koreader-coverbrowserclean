@@ -546,8 +546,9 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
                 dbrow[k] = v
             end
             if cover_specs then
-                local spec_max_cover_w = cover_specs.max_cover_w
-                local spec_max_cover_h = cover_specs.max_cover_h
+                -- make a single cover at a fixed max and keep it forever
+                local spec_max_cover_w = 800
+                local spec_max_cover_h = 800
                 dbrow.cover_fetched = 'Y' -- we had a try at getting a cover
                 local cover_bb = FileManagerBookInfo:getCoverImage(document)
                 if cover_bb then
@@ -923,7 +924,7 @@ Do you want to prune the cache of removed books?]]
                     if bookinfo and cover_specs and not bookinfo.ignore_cover then
                         if bookinfo.cover_fetched then
                             if bookinfo.has_cover and BookInfoManager.isCachedCoverInvalid(bookinfo, cover_specs) then
-                                to_extract = true
+                                -- skip this. we're storing a single thumbnail res and that's it.
                             end
                         else
                             to_extract = true

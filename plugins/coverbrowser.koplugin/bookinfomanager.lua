@@ -861,7 +861,7 @@ Do you want to prune the cache of removed books?]]
     end
 
     local confirm_abort = function()
-        return Trapper:confirm(_("Do you want to abort extraction?"), _("Don't abort"), _("Abort"))
+        return Trapper:confirm(_("Do you want to stop?"), _("Keep Indexing"), _("Stop Indexing"))
     end
     -- Cancel any background job, before we launch new ones
     self:terminateBackgroundJobs()
@@ -988,7 +988,7 @@ Do you want to prune the cache of removed books?]]
 
         local orig_moved_offset = info.movable:getMovedOffset()
         info:free()
-        info.text = T(_("Indexing %1 / %2…\n\nTap anywhere on screen to stop.\n\n%3"), i, nb_files, BD.filename(filename))
+        info.text = T(_("Indexing %1 / %2…\n\nTap anywhere to stop.\n\n%3"), i, nb_files, BD.filename(filename))
         info:init()
         local text_widget = table.remove(info.movable[1][1], 3)
         local text_widget_size = text_widget:getSize()

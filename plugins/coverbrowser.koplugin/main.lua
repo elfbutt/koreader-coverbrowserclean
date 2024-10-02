@@ -444,7 +444,7 @@ function CoverBrowser:addToMainMenu(menu_items)
                 text = _("Book covers and info database"),
                 sub_item_table = {
                     {
-                        text = _("Scan for new books at startup and USB eject"),
+                        text = _("Scan home folder for new books at startup and USB eject"),
                         checked_func = function() return BookInfoManager:getSetting("autoscan_on_eject") end,
                         callback = function()
                             BookInfoManager:toggleSetting("autoscan_on_eject")

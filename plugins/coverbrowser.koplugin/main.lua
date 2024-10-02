@@ -114,10 +114,6 @@ local CoverBrowser = WidgetContainer:extend{
     },
 }
 
-function string.starts(String,Start)
-    return string.sub(String,1,string.len(Start))==Start
-end
-
 local max_items_per_page = 10
 local min_items_per_page = 3
 local default_items_per_page = 7

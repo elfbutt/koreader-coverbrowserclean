@@ -27,6 +27,7 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local _ = require("gettext")
 local Device = require("device")
 local T = require("ffi/util").template
+local util = require("util")
 
 local Screen = Device.screen
 local BookInfoManager = require("bookinfomanager")
@@ -786,7 +787,7 @@ function CoverMenu:menuInit()
 
     -- set and update pathchooser status
     is_pathchooser = false
-    if string.starts(self.title_bar.title, "Long-press to choose") then
+    if util.stringStartsWith(self.title_bar.title, "Long-press to choose") then
         is_pathchooser = true
     end
 

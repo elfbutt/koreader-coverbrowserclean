@@ -252,13 +252,13 @@ function ListMenuItem:update()
         if is_pathchooser == false then
             -- replace the stock tiny file and folder glyphs with text
             local folder_count = string.match(self.mandatory, "(%d+) \u{F114}")
-            local files_count = string.match(self.mandatory, "(%d+) \u{F016}")
+            local file_count = string.match(self.mandatory, "(%d+) \u{F016}")
             local folder_text = "Folder"
             local file_text = "Book"
             wright_font_face = Font:getFace(good_sans, _fontSize(15, 19))
 
             -- add file or folder counts as necessary with pluralization (english)
-            if folder_count then
+            if folder_count and tonumber(folder_count) > 0 then
                 if tonumber(folder_count) > 1 then folder_text = folder_text .. "s" end
                 local wfoldercount = TextWidget:new {
                     text = folder_count .. " " .. folder_text,
@@ -266,10 +266,10 @@ function ListMenuItem:update()
                 }
                 table.insert(wright_items, wfoldercount)
             end
-            if files_count then
-                if tonumber(files_count) > 1 then file_text = file_text .. "s" end
+            if file_count and tonumber(file_count) > 0 then
+                if tonumber(file_count) > 1 then file_text = file_text .. "s" end
                 local wfilecount = TextWidget:new {
-                    text = files_count .. " " .. file_text,
+                    text = file_count .. " " .. file_text,
                     face = wright_font_face,
                 }
                 table.insert(wright_items, wfilecount)

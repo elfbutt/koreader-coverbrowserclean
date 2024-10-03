@@ -424,7 +424,6 @@ function ListMenuItem:update()
                     wleft_height = dimen.h
                     wleft_width = wleft_height -- make it squared
                     cover_bb_used = true
-                    -- Let ImageWidget do the scaling and give us the final size
                     local _, _, scale_factor = BookInfoManager.getCachedCoverSize(250, 500, max_img_w, max_img_h)
                     local wimage
                     if bookinfo._no_provider then
@@ -888,7 +887,7 @@ function ListMenuItem:update()
                 }
             end
 
-            --make title and author/wright fit within the line height
+            -- make title and author/wright fit within the line height
             local authors_width = wmain_width - wright_right_padding
             local avail_dimen_h = dimen.h
             while true do

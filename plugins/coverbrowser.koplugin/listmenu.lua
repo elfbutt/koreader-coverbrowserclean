@@ -347,14 +347,6 @@ function ListMenuItem:update()
             LeftContainer:new {
                 dimen = dimen:copy(),
                 HorizontalGroup:new {
-                    FrameContainer:new {
-                        width = dimen.h,
-                        height = dimen.h,
-                        margin = 0,
-                        padding = 0,
-                        color = Blitbuffer.COLOR_WHITE,
-                        bordersize = border_size,
-                        dim = self.file_deleted,
                     folder_cover,
                     HorizontalSpan:new { width = Screen:scaleBySize(5) },
                     wleft,

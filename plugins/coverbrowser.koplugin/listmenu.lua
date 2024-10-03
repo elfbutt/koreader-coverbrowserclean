@@ -299,14 +299,23 @@ function ListMenuItem:update()
         local folder_cover
         if self.do_cover_image and is_pathchooser == false then
             local _, _, scale_factor = BookInfoManager.getCachedCoverSize(250, 500, max_img_w, max_img_h)
-            folder_cover = ImageWidget:new({
-                file = getSourceDir() .. "/resources/folder.svg",
-                alpha = true,
-                scale_factor = scale_factor,
-                width = max_img_w,
-                height = max_img_h,
-                original_in_nightmode = false,
-            })
+            folder_cover = FrameContainer:new {
+                width = dimen.h,
+                height = dimen.h,
+                margin = 0,
+                padding = 0,
+                color = Blitbuffer.COLOR_WHITE,
+                bordersize = border_size,
+                dim = self.file_deleted,
+                ImageWidget:new({
+                    file = getSourceDir() .. "/resources/folder.svg",
+                    alpha = true,
+                    scale_factor = scale_factor,
+                    width = max_img_w,
+                    height = max_img_h,
+                    original_in_nightmode = false,
+                }),
+            }
             self.menu._has_cover_images = true
             self._has_cover_image = true
         else
@@ -346,8 +355,7 @@ function ListMenuItem:update()
                         color = Blitbuffer.COLOR_WHITE,
                         bordersize = border_size,
                         dim = self.file_deleted,
-                        folder_cover,
-                    },
+                    folder_cover,
                     HorizontalSpan:new { width = Screen:scaleBySize(5) },
                     wleft,
                 }

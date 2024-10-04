@@ -298,30 +298,6 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
 
                 -- Add some new buttons to original buttons set
                 table.insert(orig_buttons, {
-                    { -- Allow user to ignore some offending cover image
-                        text = bookinfo.ignore_cover and _("Unignore cover") or _("Ignore cover"),
-                        enabled = bookinfo.has_cover and true or false,
-                        callback = function()
-                            BookInfoManager:setBookInfoProperties(file, {
-                                ["ignore_cover"] = not bookinfo.ignore_cover and 'Y' or false,
-                            })
-                            UIManager:close(self.file_dialog)
-                            self:updateItems(1, true)
-                        end,
-                    },
-                    { -- Allow user to ignore some bad metadata (filename will be used instead)
-                        text = bookinfo.ignore_meta and _("Unignore metadata") or _("Ignore metadata"),
-                        enabled = bookinfo.has_meta and true or false,
-                        callback = function()
-                            BookInfoManager:setBookInfoProperties(file, {
-                                ["ignore_meta"] = not bookinfo.ignore_meta and 'Y' or false,
-                            })
-                            UIManager:close(self.file_dialog)
-                            self:updateItems(1, true)
-                        end,
-                    },
-                })
-                table.insert(orig_buttons, {
                     { -- Allow a new extraction (multiple interruptions, book replaced)...
                         text = _("Refresh cached book information"),
                         callback = function()

@@ -257,13 +257,13 @@ function CoverBrowser:addToMainMenu(menu_items)
                         left_text = _("Columns"),
                         left_value = nb_cols,
                         left_min = 2,
-                        left_max = 8,
+                        left_max = 4,
                         left_default = 3,
                         left_precision = "%01d",
                         right_text = _("Rows"),
                         right_value = nb_rows,
                         right_min = 2,
-                        right_max = 8,
+                        right_max = 4,
                         right_default = 3,
                         right_precision = "%01d",
                         keep_shown_on_apply = true,
@@ -305,13 +305,13 @@ function CoverBrowser:addToMainMenu(menu_items)
                         left_text = _("Columns"),
                         left_value = nb_cols,
                         left_min = 2,
-                        left_max = 8,
+                        left_max = 4,
                         left_default = 4,
                         left_precision = "%01d",
                         right_text = _("Rows"),
                         right_value = nb_rows,
                         right_min = 2,
-                        right_max = 8,
+                        right_max = 4,
                         right_default = 2,
                         right_precision = "%01d",
                         keep_shown_on_apply = true,
@@ -415,41 +415,18 @@ function CoverBrowser:addToMainMenu(menu_items)
                 end,
             },
             {
-                text = _("Display hints"),
+                text = _("Book covers and info cache"),
                 sub_item_table = {
                     {
-                        text = _("Show hint for book status in history"),
-                        checked_func = function() return BookInfoManager:getSetting("history_hint_opened") end,
-                        callback = function()
-                            BookInfoManager:toggleSetting("history_hint_opened")
-                            fc:updateItems(1, true)
-                        end,
-                    },
-                    {
-                        text = _("Show hint for book status in collections"),
-                        checked_func = function() return BookInfoManager:getSetting("collections_hint_opened") end,
-                        callback = function()
-                            BookInfoManager:toggleSetting("collections_hint_opened")
-                            fc:updateItems(1, true)
-                        end,
-                    }
-                },
-                separator = true,
-            },
-            {
-                text = _("Book covers and info database"),
-                sub_item_table = {
-                    {
-                        text = _("Scan home folder for new books at startup and USB eject"),
+                        text = _("Scan home folder for new books automatically"),
                         checked_func = function() return BookInfoManager:getSetting("autoscan_on_eject") end,
                         callback = function()
                             BookInfoManager:toggleSetting("autoscan_on_eject")
-                            fc:updateItems(1, true)
                         end,
                     },
                     {
-                        text = _("Prune cache of removed books..."),
-                        keep_menu_open = true,
+                        text = _("Prune cache of removed books…"),
+                        keep_menu_open = false,
                         callback = function()
                             local ConfirmBox = require("ui/widget/confirmbox")
                             UIManager:close(self.file_dialog)
@@ -471,17 +448,17 @@ function CoverBrowser:addToMainMenu(menu_items)
                         end,
                     },
                     {
-                        text = _("Compact cache database..."),
-                        keep_menu_open = true,
+                        text = _("Compact cache…"),
+                        keep_menu_open = false,
                         callback = function()
                             local ConfirmBox = require("ui/widget/confirmbox")
                             UIManager:close(self.file_dialog)
                             UIManager:show(ConfirmBox:new{
-                                text = _("Are you sure that you want to compact cache database?\n(This may take a while.)"),
-                                ok_text = _("Compact database"),
+                                text = _("Are you sure that you want to compact cache?\n(This may take a while.)"),
+                                ok_text = _("Compact cache"),
                                 ok_callback = function()
                                     local InfoMessage = require("ui/widget/infomessage")
-                                    local msg = InfoMessage:new{ text = _("Compacting cache database…") }
+                                    local msg = InfoMessage:new{ text = _("Compacting cache…") }
                                     UIManager:show(msg)
                                     UIManager:nextTick(function()
                                         local summary = BookInfoManager:compactDb()
@@ -493,14 +470,14 @@ function CoverBrowser:addToMainMenu(menu_items)
                         end,
                     },
                     {
-                        text = _("Delete cache database..."),
-                        keep_menu_open = true,
+                        text = _("Empty cache…"),
+                        keep_menu_open = false,
                         callback = function()
                             local ConfirmBox = require("ui/widget/confirmbox")
                             UIManager:close(self.file_dialog)
                             UIManager:show(ConfirmBox:new{
-                                text = _("Are you sure that you want to delete cover and metadata cache?\n(This will also reset your display mode settings.)"),
-                                ok_text = _("Purge"),
+                                text = _("Are you sure that you want to delete cover and metadata cache for all books?"),
+                                ok_text = _("Empty cache"),
                                 ok_callback = function()
                                     BookInfoManager:deleteDb()
                                 end
@@ -511,7 +488,7 @@ function CoverBrowser:addToMainMenu(menu_items)
                     {
                         text_func = function() -- add current db size to menu text
                             local sstr = BookInfoManager:getDbSize()
-                            return _("Current cache size: ") .. sstr
+                            return _("Cache Size: ") .. sstr
                         end,
                         keep_menu_open = true,
                         callback = function() end, -- no callback, only for information

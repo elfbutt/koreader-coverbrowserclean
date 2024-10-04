@@ -587,11 +587,11 @@ function MosaicMenuItem:update()
                 widget = CenterContainer:new{
                     dimen = dimen,
                     FrameContainer:new{
-                        width = image_size.w + 2*border_size,
-                        height = image_size.h + 2*border_size,
+                        width = image_size.w,
+                        height = image_size.h,
                         margin = 0,
                         padding = 0,
-                        bordersize = border_size,
+                        bordersize = 0,
                         dim = self.file_deleted,
                         color = self.file_deleted and Blitbuffer.COLOR_DARK_GRAY or nil,
                         image,
@@ -724,23 +724,6 @@ function MosaicMenuItem:paintTo(bb, x, y)
     -- other paintings are anchored to the sub-widget (cover image)
     local target =  self[1][1][1]
 
-    if self.entry.order == nil -- File manager, History
-            and ReadCollection:isFileInCollections(self.filepath) then
-        -- top right corner
-        local ix, rect_ix
-        if BD.mirroredUILayout() then
-            ix = math.floor((self.width - target.dimen.w)/2)
-            rect_ix = target.bordersize
-        else
-            ix = self.width - math.ceil((self.width - target.dimen.w)/2) - corner_mark_size
-            rect_ix = 0
-        end
-        local iy = 0
-        local rect_size = corner_mark_size - target.bordersize
-        bb:paintRect(x+ix+rect_ix, target.dimen.y+target.bordersize, rect_size, rect_size, Blitbuffer.COLOR_GRAY)
-        collection_mark:paintTo(bb, x+ix, target.dimen.y+iy)
-    end
-
     if self.do_hint_opened and self.been_opened then
         -- bottom right corner
         local ix
@@ -780,36 +763,6 @@ function MosaicMenuItem:paintTo(bb, x, y)
         progress_widget:setPercentage(self.percent_finished)
         progress_widget:paintTo(bb, pos_x, pos_y)
     end
-
-    -- to which we paint a small indicator if this book has a description
-    -- if self.has_description and not BookInfoManager:getSetting("no_hint_description") then
-    --     -- On book's right (for similarity to ListMenuItem)
-    --     local d_w = Screen:scaleBySize(3)
-    --     local d_h = math.ceil(target.dimen.h / 8)
-    --     -- Paint it directly relative to target.dimen.x/y which has been computed at this point
-    --     local ix
-    --     if BD.mirroredUILayout() then
-    --         ix = - d_w + 1
-    --         -- Set alternate dimen to be marked as dirty to include this description in refresh
-    --         local x_overflow_left = x - target.dimen.x+ix -- positive if overflow
-    --         if x_overflow_left > 0 then
-    --             self.refresh_dimen = self[1].dimen:copy()
-    --             self.refresh_dimen.x = self.refresh_dimen.x - x_overflow_left
-    --             self.refresh_dimen.w = self.refresh_dimen.w + x_overflow_left
-    --         end
-    --     else
-    --         ix = target.dimen.w - 1
-    --         -- Set alternate dimen to be marked as dirty to include this description in refresh
-    --         local x_overflow_right = target.dimen.x+ix+d_w - x - self.dimen.w
-    --         if x_overflow_right > 0 then
-    --             self.refresh_dimen = self[1].dimen:copy()
-    --             self.refresh_dimen.w = self.refresh_dimen.w + x_overflow_right
-    --         end
-    --     end
-    --     local iy = 0
-    --     bb:paintBorder(target.dimen.x+ix, target.dimen.y+iy, d_w, d_h, 1)
-
-    -- end
 end
 
 -- As done in MenuItem
@@ -908,15 +861,6 @@ function MosaicMenu:_recalculateDimen()
             alpha = true,
             width = corner_mark_size,
             height = corner_mark_size,
-        }
-        if collection_mark then
-            collection_mark:free()
-        end
-        collection_mark = IconWidget:new{
-            icon = "star.white",
-            width = corner_mark_size,
-            height = corner_mark_size,
-            alpha = true,
         }
     end
 

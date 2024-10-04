@@ -108,7 +108,7 @@ for i=1, #BOOKINFO_COLS_SET do
     table.insert(bookinfo_values_sql, "?")
 end
 
-local max_cover_dimen = 800
+local max_cover_dimen = 600 -- tested 400, 600, and 800
 
 -- Build our most often used SQL queries according to columns
 local BOOKINFO_INSERT_SQL = "INSERT OR REPLACE INTO bookinfo " ..
@@ -153,7 +153,14 @@ end
 -- DB management
 function BookInfoManager:getDbSize()
     local file_size = lfs.attributes(self.db_location, "size") or 0
-    return util.getFriendlySize(file_size)
+    local friendly_file_size = util.getFriendlySize(file_size)
+    local num_books = "0"
+    self:openDbConnection()
+    local res = self.db_conn:exec("SELECT count(bcid) FROM bookinfo;")
+    if res then
+        num_books = string.match(tostring(res[1][1]), "^(%d+)")
+    end
+    return friendly_file_size .. "  —  " .. num_books .. " Book(s)"
 end
 
 function BookInfoManager:createDB()
@@ -225,9 +232,15 @@ function BookInfoManager:closeDbConnection()
 end
 
 function BookInfoManager:deleteDb()
-    self:closeDbConnection()
-    os.remove(self.db_location)
-    self.db_created = false
+    -- self:closeDbConnection()
+    -- os.remove(self.db_location)
+    -- self.db_created = false
+    self:openDbConnection()
+    local query = "DELETE FROM bookinfo;"
+    local stmt = self.db_conn:prepare(query)
+    stmt:step() -- commited
+    stmt:clearbind():reset() -- cleanup
+    self:compactDb() -- compact
 end
 
 function BookInfoManager:compactDb()
@@ -248,7 +261,7 @@ function BookInfoManager:compactDb()
         return T(_("Failed compacting database: %1"), errmsg)
     end
     local cur_size = self:getDbSize()
-    return T(_("Cache database size reduced from %1 to %2."), prev_size, cur_size)
+    return T(_("Cache size reduced from\n%1\nto\n%2."), prev_size, cur_size)
 end
 
 -- Settings management, stored in 'config' table
@@ -824,9 +837,6 @@ function BookInfoManager:extractBooksInDirectory(path, cover_specs, autorun)
         go_on = Trapper:confirm(_([[
 This will extract metadata and cover images from books in the current directory.
 Once extraction has started, you can abort at any moment by tapping on the screen.
-
-Cover images will be saved with the adequate size for the current display mode.
-If you later change display mode, they may need to be extracted again.
 
 This extraction may take time and use some battery power: you may wish to keep your device plugged in.]]
         ), _("Cancel"), _("Continue"))

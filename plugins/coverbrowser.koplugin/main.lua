@@ -425,7 +425,7 @@ function CoverBrowser:addToMainMenu(menu_items)
                         end,
                     },
                     {
-                        text = _("Prune cache of removed books…"),
+                        text = _("Prune cache…"),
                         keep_menu_open = false,
                         callback = function()
                             local ConfirmBox = require("ui/widget/confirmbox")
@@ -440,28 +440,7 @@ function CoverBrowser:addToMainMenu(menu_items)
                                     UIManager:show(msg)
                                     UIManager:nextTick(function()
                                         local summary = BookInfoManager:removeNonExistantEntries()
-                                        UIManager:close(msg)
-                                        UIManager:show( InfoMessage:new{ text = summary } )
-                                    end)
-                                end
-                            })
-                        end,
-                    },
-                    {
-                        text = _("Compact cache…"),
-                        keep_menu_open = false,
-                        callback = function()
-                            local ConfirmBox = require("ui/widget/confirmbox")
-                            UIManager:close(self.file_dialog)
-                            UIManager:show(ConfirmBox:new{
-                                text = _("Are you sure that you want to compact cache?\n(This may take a while.)"),
-                                ok_text = _("Compact cache"),
-                                ok_callback = function()
-                                    local InfoMessage = require("ui/widget/infomessage")
-                                    local msg = InfoMessage:new{ text = _("Compacting cache…") }
-                                    UIManager:show(msg)
-                                    UIManager:nextTick(function()
-                                        local summary = BookInfoManager:compactDb()
+                                        BookInfoManager:compactDb() -- compact
                                         UIManager:close(msg)
                                         UIManager:show( InfoMessage:new{ text = summary } )
                                     end)
@@ -480,6 +459,9 @@ function CoverBrowser:addToMainMenu(menu_items)
                                 ok_text = _("Empty cache"),
                                 ok_callback = function()
                                     BookInfoManager:deleteDb()
+                                    BookInfoManager:compactDb() -- compact
+                                    local InfoMessage = require("ui/widget/infomessage")
+                                    UIManager:show( InfoMessage:new{ text = "Cache emptied." } )
                                 end
                             })
                         end,

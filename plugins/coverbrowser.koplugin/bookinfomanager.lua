@@ -240,7 +240,6 @@ function BookInfoManager:deleteDb()
     local stmt = self.db_conn:prepare(query)
     stmt:step() -- commited
     stmt:clearbind():reset() -- cleanup
-    self:compactDb() -- compact
 end
 
 function BookInfoManager:compactDb()
@@ -891,6 +890,7 @@ Do you want to prune the cache of removed books?]]
                     return
                 end
             else
+                self:compactDb() -- compact
                 UIManager:close(info)
                 info = InfoMessage:new{text = summary}
                 UIManager:show(info)

@@ -987,24 +987,24 @@ function ListMenuItem:update()
             local title_padding = wtitle:getSize().h
             local wauthors_padding = wmain_width - wright_width - wright_right_padding
 
-            if wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) > avail_dimen_h then
-                logger.info("BUFFER UNDERRUN")
-                logger.info("dimen.h ", dimen.h )
-                logger.info("avail_dimen_h ", avail_dimen_h)
-                logger.info("title ", title)
-                logger.info("title_ismultiline ", title_ismultiline)
-                logger.info("wtitle:getSize().h ", wtitle:getSize().h)
-                logger.info("fontsize_title ", fontsize_title)
-                logger.info("authors ", authors)
-                logger.info("wauthors_iswider ", wauthors_iswider)
-                logger.info("wauthors:getSize().h ", wauthors:getSize().h)
-                logger.info("wauthors:getSize().w ", wauthors:getSize().w)
-                logger.info("wauthors_padding ", wauthors_padding)
-                logger.info("authors_width ", authors_width)
-                logger.info("fontsize_authors ", fontsize_authors)
-                logger.info("wright_height ", wright_height)
-                logger.info("wright_width ", wright_width)
-            end
+            -- if wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) > avail_dimen_h then
+            --     logger.info("BUFFER UNDERRUN")
+            --     logger.info("dimen.h ", dimen.h )
+            --     logger.info("avail_dimen_h ", avail_dimen_h)
+            --     logger.info("title ", title)
+            --     logger.info("title_ismultiline ", title_ismultiline)
+            --     logger.info("wtitle:getSize().h ", wtitle:getSize().h)
+            --     logger.info("fontsize_title ", fontsize_title)
+            --     logger.info("authors ", authors)
+            --     logger.info("wauthors_iswider ", wauthors_iswider)
+            --     logger.info("wauthors:getSize().h ", wauthors:getSize().h)
+            --     logger.info("wauthors:getSize().w ", wauthors:getSize().w)
+            --     logger.info("wauthors_padding ", wauthors_padding)
+            --     logger.info("authors_width ", authors_width)
+            --     logger.info("fontsize_authors ", fontsize_authors)
+            --     logger.info("wright_height ", wright_height)
+            --     logger.info("wright_width ", wright_width)
+            -- end
 
             -- style files differently in pathchooser
             local wtitle_container

@@ -1,6 +1,6 @@
 local _ = require("gettext")
 return {
-    name = "coverbrowserclean",
-    fullname = _("Cover browser clean"),
-    description = _([[Alternative display modes for file browser and history. With new customized looks and features.]]),
+    name = "projecttitle",
+    fullname = _("AAA Project Title"),
+    description = _([[All new user interface for browsing books.]]),
 }

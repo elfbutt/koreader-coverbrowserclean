@@ -45,7 +45,7 @@ local corner_mark
 local reading_mark
 local abandoned_mark
 local complete_mark
-local collection_mark
+-- local collection_mark
 local progress_widget
 
 -- ItemShortCutIcon (for keyboard navigation) is private to menu.lua and can't be accessed,

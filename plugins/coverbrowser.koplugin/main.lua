@@ -106,7 +106,7 @@ local CoverBrowser = WidgetContainer:extend{
         { _("Detailed List"), "list_only_meta" },
         { _("Detailed List (with covers)"), "list_image_meta" },
         { _("Cover Grid"), "mosaic_image" },
-        { _("Original List (filenames only)") },
+        { _("Filenames List") },
 
         -- disable the following modes:
         -- { _("Mosaic with text covers"), "mosaic_text" },
@@ -117,6 +117,12 @@ local CoverBrowser = WidgetContainer:extend{
 local max_items_per_page = 10
 local min_items_per_page = 3
 local default_items_per_page = 7
+local max_cols = 4
+local max_rows = 4
+local min_cols = 2
+local min_rows = 2
+local default_cols = 3
+local default_rows = 3
 function CoverBrowser:onDispatcherRegisterActions()
     Dispatcher:registerAction("dec_items_pp", { category = "none", event = "DecreaseItemsPerPage", title = _("Project Title: Decrease Items Per Page"), filemanager=true, separator = false})
     Dispatcher:registerAction("inc_items_pp", { category = "none", event = "IncreaseItemsPerPage", title = _("Project Title: Increase Items Per Page"), filemanager=true, separator = false})
@@ -256,15 +262,15 @@ function CoverBrowser:addToMainMenu(menu_items)
                         width_factor = 0.6,
                         left_text = _("Columns"),
                         left_value = nb_cols,
-                        left_min = 2,
-                        left_max = 4,
-                        left_default = 3,
+                        left_min = min_cols,
+                        left_max = max_cols,
+                        left_default = default_cols,
                         left_precision = "%01d",
                         right_text = _("Rows"),
                         right_value = nb_rows,
-                        right_min = 2,
-                        right_max = 4,
-                        right_default = 3,
+                        right_min = min_rows,
+                        right_max = max_rows,
+                        right_default = default_rows,
                         right_precision = "%01d",
                         keep_shown_on_apply = true,
                         callback = function(left_value, right_value)
@@ -304,15 +310,15 @@ function CoverBrowser:addToMainMenu(menu_items)
                         width_factor = 0.6,
                         left_text = _("Columns"),
                         left_value = nb_cols,
-                        left_min = 2,
-                        left_max = 4,
-                        left_default = 4,
+                        left_min = min_cols,
+                        left_max = max_cols,
+                        left_default = default_cols,
                         left_precision = "%01d",
                         right_text = _("Rows"),
                         right_value = nb_rows,
-                        right_min = 2,
-                        right_max = 4,
-                        right_default = 2,
+                        right_min = min_rows,
+                        right_max = max_rows,
+                        right_default = default_cols,
                         right_precision = "%01d",
                         keep_shown_on_apply = true,
                         callback = function(left_value, right_value)
@@ -484,10 +490,10 @@ end
 function CoverBrowser.initGrid(menu, display_mode)
     if menu == nil then return end
     if menu.nb_cols_portrait == nil then
-        menu.nb_cols_portrait  = BookInfoManager:getSetting("nb_cols_portrait") or 3
-        menu.nb_rows_portrait  = BookInfoManager:getSetting("nb_rows_portrait") or 3
-        menu.nb_cols_landscape = BookInfoManager:getSetting("nb_cols_landscape") or 4
-        menu.nb_rows_landscape = BookInfoManager:getSetting("nb_rows_landscape") or 2
+        menu.nb_cols_portrait  = BookInfoManager:getSetting("nb_cols_portrait") or default_cols
+        menu.nb_rows_portrait  = BookInfoManager:getSetting("nb_rows_portrait") or default_rows
+        menu.nb_cols_landscape = BookInfoManager:getSetting("nb_cols_landscape") or default_cols
+        menu.nb_rows_landscape = BookInfoManager:getSetting("nb_rows_landscape") or default_rows
         -- initial List mode files_per_page will be calculated and saved by ListMenu on the first drawing
         menu.files_per_page = BookInfoManager:getSetting("files_per_page")
     end
@@ -838,23 +844,83 @@ function CoverBrowser:extractBooksInDirectory(path)
     end)
 end
 
--- Gesturable: Increase items per page in portrait mode (makes items smaller)
+-- Gesturable: Increase items per page (makes items smaller)
 function CoverBrowser:onIncreaseItemsPerPage()
     local fc = self.ui.file_chooser
-    local files_per_page = fc.files_per_page or default_items_per_page
-    files_per_page = math.min(files_per_page + 1, max_items_per_page)
-    BookInfoManager:saveSetting("files_per_page", files_per_page)
-    FileChooser.files_per_page = files_per_page
+    local display_mode = BookInfoManager:getSetting("filemanager_display_mode")
+    -- list modes
+    if display_mode == "list_image_meta" or display_mode == "list_only_meta" then
+        local files_per_page = fc.files_per_page or default_items_per_page
+        files_per_page = math.min(files_per_page + 1, max_items_per_page)
+        BookInfoManager:saveSetting("files_per_page", files_per_page)
+        FileChooser.files_per_page = files_per_page
+    -- grid mode
+    elseif display_mode == "mosaic_image" then
+        local Device = require("device")
+        local Screen = Device.screen
+        local portrait_mode = Screen:getWidth() <= Screen:getHeight()
+        if portrait_mode then
+            if BookInfoManager:getSetting("nb_cols_portrait") == BookInfoManager:getSetting("nb_rows_portrait") then
+                fc.nb_cols_portrait = math.min(BookInfoManager:getSetting("nb_cols_portrait") + 1, max_cols)
+                fc.nb_rows_portrait = math.min(BookInfoManager:getSetting("nb_rows_portrait") + 1, max_rows)
+                BookInfoManager:saveSetting("nb_cols_portrait", fc.nb_cols_portrait)
+                BookInfoManager:saveSetting("nb_rows_portrait", fc.nb_rows_portrait)
+                FileChooser.nb_cols_portrait = fc.nb_cols_portrait
+                FileChooser.nb_rows_portrait = fc.nb_rows_portrait
+            end
+        end
+        if not portrait_mode then
+            if BookInfoManager:getSetting("nb_cols_landscape") == BookInfoManager:getSetting("nb_rows_landscape") then
+                fc.nb_cols_landscape = math.min(BookInfoManager:getSetting("nb_cols_landscape") + 1, max_cols)
+                fc.nb_rows_landscape = math.min(BookInfoManager:getSetting("nb_rows_landscape") + 1, max_rows)
+                BookInfoManager:saveSetting("nb_cols_landscape", fc.nb_cols_landscape)
+                BookInfoManager:saveSetting("nb_rows_landscape", fc.nb_rows_landscape)
+                FileChooser.nb_cols_landscape = fc.nb_cols_landscape
+                FileChooser.nb_rows_landscape = fc.nb_rows_landscape
+            end
+        end
+    end
+    fc.no_refresh_covers = nil
     fc:updateItems()
 end
 
--- Gesturable: Decrease items per page in portrait mode (makes items bigger)
+-- Gesturable: Decrease items per page (makes items bigger)
 function CoverBrowser:onDecreaseItemsPerPage()
     local fc = self.ui.file_chooser
-    local files_per_page = fc.files_per_page or default_items_per_page
-    files_per_page = math.max(files_per_page - 1, min_items_per_page)
-    BookInfoManager:saveSetting("files_per_page", files_per_page)
-    FileChooser.files_per_page = files_per_page
+    local display_mode = BookInfoManager:getSetting("filemanager_display_mode")
+    -- list modes
+    if display_mode == "list_image_meta" or display_mode == "list_only_meta" then
+        local files_per_page = fc.files_per_page or default_items_per_page
+        files_per_page = math.max(files_per_page - 1, min_items_per_page)
+        BookInfoManager:saveSetting("files_per_page", files_per_page)
+        FileChooser.files_per_page = files_per_page
+    -- grid mode
+    elseif display_mode == "mosaic_image" then
+        local Device = require("device")
+        local Screen = Device.screen
+        local portrait_mode = Screen:getWidth() <= Screen:getHeight()
+        if portrait_mode then
+            if BookInfoManager:getSetting("nb_cols_portrait") == BookInfoManager:getSetting("nb_rows_portrait") then
+                fc.nb_cols_portrait = math.max(BookInfoManager:getSetting("nb_cols_portrait") - 1, min_cols)
+                fc.nb_rows_portrait = math.max(BookInfoManager:getSetting("nb_rows_portrait") - 1, min_rows)
+                BookInfoManager:saveSetting("nb_cols_portrait", fc.nb_cols_portrait)
+                BookInfoManager:saveSetting("nb_rows_portrait", fc.nb_rows_portrait)
+                FileChooser.nb_cols_portrait = fc.nb_cols_portrait
+                FileChooser.nb_rows_portrait = fc.nb_rows_portrait
+            end
+        end
+        if not portrait_mode then
+            if BookInfoManager:getSetting("nb_cols_landscape") == BookInfoManager:getSetting("nb_rows_landscape") then
+                fc.nb_cols_landscape = math.max(BookInfoManager:getSetting("nb_cols_landscape") - 1, min_cols)
+                fc.nb_rows_landscape = math.max(BookInfoManager:getSetting("nb_rows_landscape") - 1, min_rows)
+                BookInfoManager:saveSetting("nb_cols_landscape", fc.nb_cols_landscape)
+                BookInfoManager:saveSetting("nb_rows_landscape", fc.nb_rows_landscape)
+                FileChooser.nb_cols_landscape = fc.nb_cols_landscape
+                FileChooser.nb_rows_landscape = fc.nb_rows_landscape
+            end
+        end
+    end
+    fc.no_refresh_covers = nil
     fc:updateItems()
 end
 

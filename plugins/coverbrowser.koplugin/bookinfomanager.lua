@@ -69,7 +69,7 @@ local BOOKINFO_DB_SCHEMA = [[
     CREATE UNIQUE INDEX IF NOT EXISTS dir_filename ON bookinfo(directory, filename);
 
     -- To keep track of CoverBrowser settings
-    CREATE TABLE IF NOT EXISTS config2 (
+    CREATE TABLE IF NOT EXISTS config (
         key TEXT PRIMARY KEY,
         value TEXT
     );
@@ -134,7 +134,7 @@ local UNSUPPORTED_REASONS = {
 local BookInfoManager = {}
 
 function BookInfoManager:init()
-    self.db_location = DataStorage:getSettingsDir() .. "/bookinfo_cache.sqlite3"
+    self.db_location = DataStorage:getSettingsDir() .. "/PT_bookinfo_cache.sqlite3"
     self.db_created = false
     self.db_conn = nil
     self.max_extract_tries = 3 -- don't try more than that to extract info from a same book
@@ -280,7 +280,7 @@ function BookInfoManager:loadSettings(db_conn)
         my_db_conn = self.db_conn
     end
 
-    local res = my_db_conn:exec("SELECT key, value FROM config2;")
+    local res = my_db_conn:exec("SELECT key, value FROM config;")
     if res then
         local keys = res[1]
         local values = res[2]
@@ -313,7 +313,7 @@ function BookInfoManager:saveSetting(key, value, db_conn, skip_reload)
         my_db_conn = self.db_conn
     end
 
-    local query = "INSERT OR REPLACE INTO config2 (key, value) VALUES (?, ?);"
+    local query = "INSERT OR REPLACE INTO config (key, value) VALUES (?, ?);"
     local stmt = my_db_conn:prepare(query)
     if value == false then -- convert false to NULL
         value = nil

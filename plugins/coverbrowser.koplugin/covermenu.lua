@@ -27,6 +27,7 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local _ = require("gettext")
 local Device = require("device")
 local T = require("ffi/util").template
+local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local util = require("util")
 
 local Screen = Device.screen
@@ -696,6 +697,7 @@ function CoverMenu:menuInit()
         face = Font:getFace(good_serif, 20),
         max_width = self.screen_w * 0.94 - pagination_width,
         truncate_with_ellipsis = true,
+        truncate_left = true,
     }
     local cur_folder = HorizontalGroup:new{
         self.cur_folder_text,
@@ -785,9 +787,12 @@ function CoverMenu:updatePageInfo(select_number)
     -- test to see what items to draw (pathchooser vs "detailed list view mode")
     if not is_pathchooser then
         if self.cur_folder_text and self.path then
+            local display_path = ""
             self.cur_folder_text:setMaxWidth(self.screen_w * 0.94 - self.page_info:getSize().w)
-            if self.path == G_reader_settings:readSetting("home_dir") then
-                self.cur_folder_text:setText("Home")
+            if (self.path == filemanagerutil.getDefaultDir() or
+                    self.path == G_reader_settings:readSetting("home_dir")) and
+                    G_reader_settings:nilOrTrue("shorten_home_dir") then
+                display_path = "Home"
             else
                 -- show only the current folder name, not the whole path
                 local crumbs = {}
@@ -796,15 +801,14 @@ function CoverMenu:updatePageInfo(select_number)
                 end
                 local folder_name = table.concat(crumbs, "", #crumbs, #crumbs)
                 if folder_name then
+                    -- add a star if folder is in shortcuts
                     if FileManagerShortcuts:hasFolderShortcut(self.path) then
-                        -- folder_name = "☆ " .. folder_name
                         folder_name = "★ " .. folder_name
                     end
-                    self.cur_folder_text:setText(folder_name)
-                else
-                    self.cur_folder_text:setText("")
+                    display_path = folder_name
                 end
             end
+            self.cur_folder_text:setText(display_path)
         end
     else
         self.cur_folder_text:setText("")

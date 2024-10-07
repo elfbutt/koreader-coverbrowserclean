@@ -32,11 +32,14 @@ Project Title is a project by two people who love KOreader but wanted to expand 
 [SCREENSHOT GRID]
 
 ## Installation Instructions
+To install the plugin on your eReader:
 https://github.com/elfbutt/koreader-coverbrowserclean/wiki/Installation
 
+To configure Calibre to add page counts to books:
+https://github.com/elfbutt/koreader-coverbrowserclean/wiki/Configure-Calibre-Page-Counts
+
 ## Credits
-All code here started life as the CoverBrowser plugin, written by (as best we can tell, commit history is cut off) by several members of the KOreader team. The additional changes made here were done by @joshuacant and @elfbutt
+All code here started life as the CoverBrowser plugin, written by @poire-z and other members of the KOReader team. The additional changes made here were done by @joshuacant and @elfbutt
 
 ## Licenses
-
 The code is licensed under the same terms as KOReader itself, AGPL-3.0. The license information for any additional files (fonts, images, etc) is located in licenses.txt

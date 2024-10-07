@@ -26,7 +26,7 @@ Project Title is a project by two people who love KOreader but wanted to expand 
 * Android users. Sorry. We were unable to make it work on Android. We'd love someone to help us, so PRs are very welcome!
 * Non-English speakers. Many UI strings were added, some were rewritten and we did not design with an eye toward the localization. PRs welcome here as well, though we prefer to distribute any additional translations with this plugin. Ideally, nothing added to the plugin would ever need a PR against KOReader itself.
 * KOReader users who prefer a barebones UI. If you are happy picking your next read from a list of filenames, I don't think you'll like what we're offering. Good news is that KOReader already does this extremely well!
-* People who absolutely love one of the features we removed from CoverBrowser. We made this plugin for ourselves, so in additional to adding we also removed things we didn't use. You'll just have to try it out to see if there's anything you miss!
+* People who absolutely love one of the features we removed from CoverBrowser. We made this plugin for ourselves by adding and also removing. You'll just have to try it out to see if there's anything you miss!
 
 ## Screenshots
 [SCREENSHOT GRID]

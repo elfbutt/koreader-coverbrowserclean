@@ -232,9 +232,6 @@ function BookInfoManager:closeDbConnection()
 end
 
 function BookInfoManager:deleteDb()
-    -- self:closeDbConnection()
-    -- os.remove(self.db_location)
-    -- self.db_created = false
     self:openDbConnection()
     local query = "DELETE FROM bookinfo;"
     local stmt = self.db_conn:prepare(query)

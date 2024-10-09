@@ -547,7 +547,7 @@ function CoverMenu:genItemTable(dirs, files, path)
     -- CalibreMetadata:clean()
     -- return custom_item_table
 
-    -- idea for future development? build item tables from cache db, not filesystem
+    -- idea for future development? build item tables from itemcache database
     -- local Filechooser = require("ui/widget/filechooser")
     -- local lfs = require("libs/libkoreader-lfs")
     -- local SQ3 = require("lua-ljsqlite3/init")
@@ -572,6 +572,7 @@ function CoverMenu:genItemTable(dirs, files, path)
     --         end
     --     end
     -- end
+    -- self.db_conn:close()
     -- return custom_item_table
 end
 

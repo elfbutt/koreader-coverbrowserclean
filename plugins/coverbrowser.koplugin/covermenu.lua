@@ -525,6 +525,54 @@ function CoverMenu:genItemTable(dirs, files, path)
         })
     end
     return item_table
+
+    -- idea for future development? build item tables from calibre json database
+    -- local CalibreMetadata = require("metadata") -- borrowing! would be better to steal and extend
+    -- local Filechooser = require("ui/widget/filechooser")
+    -- local lfs = require("libs/libkoreader-lfs")
+    -- local custom_item_table = {}
+    -- local root = "/mnt/onboard" -- would need to replace with a generic
+    -- CalibreMetadata:init(root, true)
+    -- for _, book in ipairs(CalibreMetadata.books) do
+    --     local fullpath = root.."/"..book.lpath
+    --     logger.info(fullpath)
+    --     local dirpath, f = util.splitFilePathName(fullpath)
+    --     if lfs.attributes(fullpath, "mode") == "file" then
+    --         local attributes = lfs.attributes(fullpath) or {}
+    --         local collate = { can_collate_mixed = nil, item_func = nil }
+    --         local item = Filechooser:getListItem(dirpath, f, fullpath, attributes, collate)
+    --         table.insert(custom_item_table, item)
+    --     end
+    -- end
+    -- CalibreMetadata:clean()
+    -- return custom_item_table
+
+    -- idea for future development? build item tables from cache db, not filesystem
+    -- local Filechooser = require("ui/widget/filechooser")
+    -- local lfs = require("libs/libkoreader-lfs")
+    -- local SQ3 = require("lua-ljsqlite3/init")
+    -- local DataStorage = require("datastorage")
+    -- local custom_item_table = {}
+    -- self.db_location = DataStorage:getSettingsDir() .. "/PT_bookinfo_cache.sqlite3"
+    -- self.db_conn = SQ3.open(self.db_location)
+    -- self.db_conn:set_busy_timeout(5000)
+    -- local res = self.db_conn:exec("SELECT directory, filename FROM bookinfo ORDER BY authors ASC, series ASC, series_index ASC, title ASC;")
+    -- if res then
+    --     local directories = res[1]
+    --     local filenames = res[2]
+    --     for i, filename in ipairs(filenames) do
+    --         local dirpath = directories[i]
+    --         local f = filename
+    --         local fullpath = dirpath..f
+    --         if lfs.attributes(fullpath, "mode") == "file" then
+    --             local attributes = lfs.attributes(fullpath) or {}
+    --             local collate = { can_collate_mixed = nil, item_func = nil }
+    --             local item = Filechooser:getListItem(dirpath, f, fullpath, attributes, collate)
+    --             table.insert(custom_item_table, item)
+    --         end
+    --     end
+    -- end
+    -- return custom_item_table
 end
 
 function CoverMenu:tapPlus()

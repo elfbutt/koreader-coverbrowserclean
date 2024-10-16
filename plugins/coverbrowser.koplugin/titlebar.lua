@@ -14,6 +14,7 @@ local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local Screen = Device.screen
+local logger = require("logger")
 
 local DGENERIC_ICON_SIZE = G_defaults:readSetting("DGENERIC_ICON_SIZE")
 
@@ -34,11 +35,11 @@ local TitleBar = OverlapGroup:extend{
     title_multilines = false, -- multilines if overflow
     title_shrink_font_to_fit = false, -- reduce font size so that single line text fits
 
-    subtitle = nil,
-    subtitle_face = Font:getFace("xx_smallinfofont"),
-    subtitle_truncate_left = false, -- default with single line is to truncate right (set to true for a filepath)
-    subtitle_fullwidth = false, -- true to allow subtitle to extend below the buttons
-    subtitle_multilines = false, -- multilines if overflow
+    -- subtitle = nil,
+    -- subtitle_face = Font:getFace("xx_smallinfofont"),
+    -- subtitle_truncate_left = false, -- default with single line is to truncate right (set to true for a filepath)
+    -- subtitle_fullwidth = false, -- true to allow subtitle to extend below the buttons
+    -- subtitle_multilines = false, -- multilines if overflow
 
     info_text = nil, -- additional text displayed below bottom line
     info_text_face = Font:getFace("x_smallinfofont"),
@@ -48,7 +49,7 @@ local TitleBar = OverlapGroup:extend{
 
     title_top_padding = nil, -- computed if none provided
     title_h_padding = Size.padding.large, -- horizontal padding (this replaces button_padding on the inner/title side)
-    title_subtitle_v_padding = 0,
+    -- title_subtitle_v_padding = 0,
     bottom_v_padding = nil, -- hardcoded default values, different whether with_bottom_line true or false
 
     button_padding = Screen:scaleBySize(11), -- fine to keep exit/cross icon diagonally aligned with screen corners
@@ -226,20 +227,20 @@ function TitleBar:init()
         end
     end
 
-    self.subtitle_widget = nil
-    if self.subtitle then
-        if self.subtitle_multilines then
-            self.subtitle_widget = TextBoxWidget:new{
-                text = "",
-                face = self.subtitle_face,
-            }
-        else
-            self.subtitle_widget = TextWidget:new{
-                text = "",
-                face = self.subtitle_face,
-            }
-        end
-    end
+    -- self.subtitle_widget = nil
+    -- if self.subtitle then
+    --     if self.subtitle_multilines then
+    --         self.subtitle_widget = TextBoxWidget:new{
+    --             text = "",
+    --             face = self.subtitle_face,
+    --         }
+    --     else
+    --         self.subtitle_widget = TextWidget:new{
+    --             text = "",
+    --             face = self.subtitle_face,
+    --         }
+    --     end
+    -- end
     -- To debug vertical positionning:
     -- local FrameContainer = require("ui/widget/container/framecontainer")
     -- self.title_widget = FrameContainer:new{ padding=0, margin=0, bordersize=1, self.title_widget}
@@ -260,25 +261,25 @@ function TitleBar:init()
         table.insert(self.title_group, self.title_widget)
     end
 
-    if self.subtitle_widget then
-        --table.insert(self.title_group, VerticalSpan:new{width = 0})
-        if self.align == "left" then
-            self.inner_subtitle_group = HorizontalGroup:new{
-                HorizontalSpan:new{ width = 0 },
-                self.subtitle_widget,
-            }
-            table.insert(self.title_group, self.inner_subtitle_group)
-        else
-            table.insert(self.title_group, self.subtitle_widget)
-        end
-    end
-    table.insert(self, self.title_group)
+    -- if self.subtitle_widget then
+    --     --table.insert(self.title_group, VerticalSpan:new{width = 0})
+    --     if self.align == "left" then
+    --         self.inner_subtitle_group = HorizontalGroup:new{
+    --             HorizontalSpan:new{ width = 0 },
+    --             self.subtitle_widget,
+    --         }
+    --         table.insert(self.title_group, self.inner_subtitle_group)
+    --     else
+    --         table.insert(self.title_group, self.subtitle_widget)
+    --     end
+    -- end
+    -- table.insert(self, self.title_group)
 
     -- This TitleBar widget is an OverlapGroup: all sub elements overlap,
     -- and can overflow or underflow. Its height for its containers is
     -- the one we set as self.dimen.h.
 
-    self.titlebar_height = self.title_group:getSize().h - self.subtitle_widget:getSize().h
+    self.titlebar_height = self.title_group:getSize().h -- - self.subtitle_widget:getSize().h
 
     -- if self.title_shrink_font_to_fit then
     --     -- Use, or store, the first title_group height we have computed,
@@ -323,6 +324,7 @@ function TitleBar:init()
         table.insert(self, filler_and_bottom_line)
         self.titlebar_height = filler_and_bottom_line:getSize().h
     end
+
     if not self.bottom_v_padding then
         if self.with_bottom_line then
             self.bottom_v_padding = Size.padding.default
@@ -558,19 +560,19 @@ function TitleBar:setTitle(title, no_refresh)
 end
 
 function TitleBar:setSubTitle(subtitle, no_refresh)
-    if self.subtitle_widget and not self.subtitle_multilines then -- no TextBoxWidget:setText() available
-        if string.match(subtitle, "/")  then
-            subtitle = subtitle:gsub("/", ": ")
-        end
-        self.subtitle_widget:setText(subtitle)
-        if self.inner_subtitle_group then
-            self.inner_subtitle_group:resetLayout()
-        end
-        self.title_group:resetLayout()
-        if not no_refresh then
-            UIManager:setDirty(self.show_parent, "ui", self.dimen)
-        end
-    end
+    -- if self.subtitle_widget and not self.subtitle_multilines then -- no TextBoxWidget:setText() available
+    --     if string.match(subtitle, "/")  then
+    --         subtitle = subtitle:gsub("/", ": ")
+    --     end
+    --     self.subtitle_widget:setText(subtitle)
+    --     if self.inner_subtitle_group then
+    --         self.inner_subtitle_group:resetLayout()
+    --     end
+    --     self.title_group:resetLayout()
+    --     if not no_refresh then
+    --         UIManager:setDirty(self.show_parent, "ui", self.dimen)
+    --     end
+    -- end
 end
 
 function TitleBar:setLeftIcon(icon)
@@ -579,8 +581,6 @@ function TitleBar:setLeftIcon(icon)
         UIManager:setDirty(self.show_parent, "ui", self.dimen)
     end
 end
-
-
 function TitleBar:setLeft2Icon(icon)
     if self.has_left2_icon then
         self.left2_button:setIcon(icon)
@@ -593,14 +593,12 @@ function TitleBar:setLeft3Icon(icon)
         UIManager:setDirty(self.show_parent, "ui", self.dimen)
     end
 end
-
 function TitleBar:setRightIcon(icon)
     if self.has_right_icon then
         self.right_button:setIcon(icon)
         UIManager:setDirty(self.show_parent, "ui", self.dimen)
     end
 end
-
 function TitleBar:setright2Icon(icon)
     if self.has_right2_icon then
         self.right2_button:setIcon(icon)

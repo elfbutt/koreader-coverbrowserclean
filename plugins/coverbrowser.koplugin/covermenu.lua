@@ -325,7 +325,7 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
             self.showFileDialog_ours = self.showFileDialog
         end)
     end
-    Menu.mergeTitleBarIntoLayout(self)
+    -- Menu.mergeTitleBarIntoLayout(self)
 end
 
 -- Similar to showFileDialog setup just above, but for History,
@@ -689,11 +689,11 @@ function CoverMenu:updateTitleBarPath(path)
             center_icon_tap_callback = false,
             center_icon_hold_callback = function()
                 UIManager:show(InfoMessage:new{
-                    text = T(_("KOReader %1\nhttps://koreader.rocks\n\nProject Title v1.0\nhttps://projtitle.github.io\n\nLicensed under Affero GPL v3.\nAll dependencies are free software."), BD.ltr(Version:getCurrentRevision())),
+                    text = T(_("KOReader %1\nhttps://koreader.rocks\n\nProject Title v1.0\nhttps://projtitle.github.io\n\nLicensed under Affero GPL v3.\nAll dependencies are free software."), BD.ltr(Version:getShortVersion())),
                     show_icon = false,
                     alignment = "center",
                 })
-                end,
+            end,
         }
     end
 end
@@ -702,7 +702,7 @@ function CoverMenu:setupLayout()
     CoverMenu._FileManager_setupLayout_orig(self)
 
     self.layout = VerticalGroup:new{
-        self.title_bar,
+        -- self.title_bar,
         self.file_chooser,
     }
 

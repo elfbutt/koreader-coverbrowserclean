@@ -4,29 +4,33 @@
     It does that by dynamically replacing some methods code to their classes
     or instances.
 
-    The fonts and icons folders included with this plugin should be placed in /fonts and /icons folder
-    within the main koreader folder your instalation lives in, ie:
-    [...] /koreader/fonts/source/SourceSans*.ttf
-    [...] /koreader/icons/*.svg
+    Additional provided files must be installed for this plugin to work.
+    See the installation instructions on the Project Title github for details.
 --]]
 
--- Disable this entire plugin if: fonts missing. icons missing. coverbrowser enabled.
+-- Disable this entire plugin if: fonts missing. icons missing. coverbrowser enabled. untested version of koreader.
 local lfs = require("libs/libkoreader-lfs")
+local logger = require("logger")
+local Version = require("version")
 local font1_missing = true
 if lfs.attributes(lfs.currentdir() .. "/fonts/source/SourceSans3-Regular.ttf") ~= nil then
     font1_missing = false
+else logger.warn("Font1 missing")
 end
 local font2_missing = true
 if lfs.attributes(lfs.currentdir() .. "/fonts/source/SourceSerif4-Regular.ttf") ~= nil then
     font2_missing = false
+else logger.warn("Font2 missing")
 end
 local font3_missing = true
 if lfs.attributes(lfs.currentdir() .. "/fonts/source/SourceSerif4-BoldIt.ttf") ~= nil then
     font3_missing = false
+else logger.warn("Font3 missing")
 end
 local icons_missing = true
 if lfs.attributes(lfs.currentdir() .. "/icons/hero.svg") ~= nil then
     icons_missing = false -- check for one icon and assume the rest are there too
+else logger.warn("Icons missing")
 end
 local plugins_disabled = G_reader_settings:readSetting("plugins_disabled")
 if type(plugins_disabled) ~= "table" then
@@ -35,8 +39,16 @@ end
 local coverbrowser_plugin = true
 if plugins_disabled["coverbrowser"] == true then
     coverbrowser_plugin = false
+else logger.warn("CoverBrowser enabled")
 end
-if font1_missing or font2_missing or font3_missing or icons_missing or coverbrowser_plugin then
+local max_safe_version = 202410
+local cv_int, cv_string = Version:getNormalizedCurrentVersion()
+local version_unsafe = true
+if (cv_int > max_safe_version) then
+    version_unsafe = false
+end
+if font1_missing or font2_missing or font3_missing or icons_missing or coverbrowser_plugin or version_unsafe then
+    logger.warn("therefore refusing to load Project Title")
     return { disabled = true, }
 end
 
@@ -46,7 +58,6 @@ local Dispatcher = require("dispatcher")
 local Trapper = require("ui/trapper")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local logger = require("logger")
 local _ = require("gettext")
 local T = require("ffi/util").template
 local BookInfoManager = require("bookinfomanager")

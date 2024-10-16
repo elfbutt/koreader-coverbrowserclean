@@ -2,6 +2,7 @@ local BD = require("ui/bidi")
 local Blitbuffer = require("ffi/blitbuffer")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
+local FileManagerBookInfo = require("apps/filemanager/filemanagerbookinfo")
 local Font = require("ui/font")
 local Geom = require("ui/geometry")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
@@ -123,14 +124,15 @@ function AltBookStatusWidget:genBookInfoGroup()
 
     -- Get a chance to have title and authors rendered with alternate
     -- glyphs for the book language
-    local lang = self.props.language
+    local props = self.ui.doc_props
+    local lang = props.language
 
     -- title
     local book_meta_info_group = VerticalGroup:new{
         align = "center",
         VerticalSpan:new{ width = height * 0.2 },
         TextBoxWidget:new{
-            text = self.props.display_title,
+            text = props.display_title,
             lang = lang,
             width = width,
             face = self.large_font_face,
@@ -140,8 +142,8 @@ function AltBookStatusWidget:genBookInfoGroup()
 
     -- author(s)
     local author_text = ""
-    if self.props.authors then
-        local authors = self.props.authors
+    if props.authors then
+        local authors = props.authors
         if authors and authors:find("\n") then
             authors = util.splitToArray(authors, "\n")
             for i = 1, #authors do
@@ -159,14 +161,14 @@ function AltBookStatusWidget:genBookInfoGroup()
     -- series name and position (if available, if requested)
     local series_mode = BookInfoManager:getSetting("series_mode")
     -- suppress showing series information if position in series is "0"
-    local show_series = self.props.series and self.props.series_index and self.props.series_index ~= 0
+    local show_series = props.series and props.series_index and props.series_index ~= 0
     if show_series then
-        local series_text = self.props.series
-        if string.match(self.props.series, ": ") then
+        local series_text = props.series
+        if string.match(props.series, ": ") then
             series_text = string.sub(series_text, findLast(series_text, ": ") + 1, -1)
         end
-        if self.props.series_index then
-            series_text = "#" .. self.props.series_index .. " – " .. BD.auto(series_text)
+        if props.series_index then
+            series_text = "#" .. props.series_index .. " – " .. BD.auto(series_text)
         else
             series_text = BD.auto(series_text)
         end
@@ -240,23 +242,22 @@ function AltBookStatusWidget:genBookInfoGroup()
         HorizontalSpan:new{ width =  split_span_width }
     }
     -- thumbnail
-    if self.thumbnail then
+    local thumbnail = FileManagerBookInfo:getCoverImage(self.ui.document)
+    if thumbnail then
         -- Much like BookInfoManager, honor AR here
-        local cbb_w, cbb_h = self.thumbnail:getWidth(), self.thumbnail:getHeight()
+        local cbb_w, cbb_h = thumbnail:getWidth(), thumbnail:getHeight()
         if cbb_w > img_width or cbb_h > img_height then
             local scale_factor = math.min(img_width / cbb_w, img_height / cbb_h)
             cbb_w = math.min(math.floor(cbb_w * scale_factor)+1, img_width)
             cbb_h = math.min(math.floor(cbb_h * scale_factor)+1, img_height)
-            self.thumbnail = RenderImage:scaleBlitBuffer(self.thumbnail, cbb_w, cbb_h, true)
+            thumbnail = RenderImage:scaleBlitBuffer(thumbnail, cbb_w, cbb_h, true)
         end
 
         table.insert(book_info_group, ImageWidget:new{
-            image = self.thumbnail,
+            image = thumbnail,
             width = cbb_w,
             height = cbb_h,
         })
-        -- dereference thumbnail since we let imagewidget manages its lifecycle
-        self.thumbnail = nil
     end
 
     table.insert(book_info_group, CenterContainer:new{
@@ -279,9 +280,10 @@ function AltBookStatusWidget:genSummaryGroup(width)
     end
 
     local html_contents
-    if self.props.description then
-        html_contents = "<html lang='" .. self.props.language .. "'><body>" .. self.props.description .. "</body></html>"
-        --html_contents = "<html><body>" .. self.props.description .. "</body></html>"
+    local props = self.ui.doc_props
+    if props.description then
+        html_contents = "<html lang='" .. props.language .. "'><body>" .. props.description .. "</body></html>"
+        --html_contents = "<html><body>" .. props.description .. "</body></html>"
     else
         html_contents = "<html><body><h2 style='font-style: italic; color: #CCCCCC;'>No description.</h3></body></html>"
     end

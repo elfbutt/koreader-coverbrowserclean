@@ -408,7 +408,7 @@ function MosaicMenuItem:init()
     -- for compatibility with keyboard navigation
     -- (which does not seem to work well when multiple pages,
     -- even with classic menu)
-    self.underline_h = 1 -- smaller than default (3), don't waste space
+    self.underline_h = 0 -- smaller than default (3), don't waste space
     self._underline_container = UnderlineContainer:new{
         vertical_align = "top",
         padding = 0,
@@ -767,12 +767,12 @@ end
 
 -- As done in MenuItem
 function MosaicMenuItem:onFocus()
-    self._underline_container.color = Blitbuffer.COLOR_BLACK
+    -- self._underline_container.color = Blitbuffer.COLOR_BLACK
     return true
 end
 
 function MosaicMenuItem:onUnfocus()
-    self._underline_container.color = Blitbuffer.COLOR_WHITE
+    -- self._underline_container.color = Blitbuffer.COLOR_WHITE
     return true
 end
 

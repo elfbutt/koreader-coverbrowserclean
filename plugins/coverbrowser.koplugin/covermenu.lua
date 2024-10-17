@@ -844,18 +844,19 @@ function CoverMenu:updatePageInfo(select_number)
                 display_path = "Home"
             else
                 -- show only the current folder name, not the whole path
+                local folder_name = "/"
                 local crumbs = {}
                 for crumb in string.gmatch(self.path, "[^/]+") do
                     table.insert(crumbs, crumb)
                 end
-                local folder_name = table.concat(crumbs, "", #crumbs, #crumbs)
-                if folder_name then
-                    -- add a star if folder is in shortcuts
-                    if FileManagerShortcuts:hasFolderShortcut(self.path) then
-                        folder_name = "★ " .. folder_name
-                    end
-                    display_path = folder_name
+                if #crumbs > 1 then
+                    folder_name = table.concat(crumbs, "", #crumbs, #crumbs)
                 end
+                -- add a star if folder is in shortcuts
+                if FileManagerShortcuts:hasFolderShortcut(self.path) then
+                    folder_name = "★ " .. folder_name
+                end
+                display_path = folder_name
             end
             self.cur_folder_text:setText(display_path)
         end

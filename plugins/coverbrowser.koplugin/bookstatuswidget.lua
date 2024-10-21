@@ -57,7 +57,7 @@ function AltBookStatusWidget:genHeader(title)
 
     local header_title = TextWidget:new{
         text = title,
-        face = self.medium_font_face,
+        face = self.header_font,
         fgcolor = Blitbuffer.COLOR_GRAY_9,
     }
 
@@ -99,10 +99,15 @@ function AltBookStatusWidget:genHeader(title)
 end
 
 function AltBookStatusWidget:genBookInfoGroup()
-    -- declare 3 fonts included with our plugin
+    -- override the original fonts with our included fonts
     self.small_font_face = Font:getFace("source/SourceSerif4-Regular.ttf", 18)
     self.medium_font_face = Font:getFace("source/SourceSerif4-Regular.ttf", 22)
-    self.large_font_face = Font:getFace("source/SourceSerif4-BoldIt.ttf", 30)
+    self.large_font_face = Font:getFace("source/SourceSerif4-Regular.ttf", 30)
+
+    -- and set up our own as well
+    self.header_font = Font:getFace("source/SourceSans3-Regular.ttf", 24)
+    self.small_serif_font = Font:getFace("source/SourceSerif4-Regular.ttf", 18)
+    self.large_serif_font = Font:getFace("source/SourceSerif4-BoldIt.ttf", 30)
 
     -- padding at 3% per side to match the 94% total width used in listview
     self.padding = Screen:getSize().w * 0.03
@@ -135,7 +140,7 @@ function AltBookStatusWidget:genBookInfoGroup()
             text = props.display_title,
             lang = lang,
             width = width,
-            face = self.large_font_face,
+            face = self.large_serif_font,
             alignment = "center",
         },
     }
@@ -186,7 +191,7 @@ function AltBookStatusWidget:genBookInfoGroup()
     local bookinfo = TextBoxWidget:new{
         text =  author_text,
         lang = lang,
-        face = self.small_font_face,
+        face = self.small_serif_font,
         width = width,
         alignment = "center",
         fgcolor = Blitbuffer.COLOR_GRAY_2
@@ -227,7 +232,7 @@ function AltBookStatusWidget:genBookInfoGroup()
     local text_complete = TextWidget:new{
         text = T(_("%1% Read"),
                         string.format("%1.f", read_percentage * 100)),
-        face = self.small_font_face,
+        face = self.small_serif_font,
     }
     table.insert(book_meta_info_group,
         CenterContainer:new{

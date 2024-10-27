@@ -945,17 +945,24 @@ function ListMenuItem:update()
             local title_ismultiline = false
             if wtitle:getSize().h * 2 < avail_dimen_h - math.max(wauthors:getSize().h, wright_height) then
                 title_ismultiline = true
-                while wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) < avail_dimen_h do
-                    if fontsize_title >= 26 then
-                        break
-                    end
-                    fontsize_title = fontsize_title + fontsize_dec_step
-                    build_multiline_title()
-                    -- if we overshoot, go back a step
-                    if wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) > avail_dimen_h then
-                        fontsize_title = fontsize_title - fontsize_dec_step
+                build_multiline_title()
+                -- if the multiline title doesn't fit even with the smallest font size, give up
+                if wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) > avail_dimen_h then
+                    build_title()
+                    title_ismultiline = false
+                else
+                    while wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) < avail_dimen_h do
+                        if fontsize_title >= 26 then
+                            break
+                        end
+                        fontsize_title = fontsize_title + fontsize_dec_step
                         build_multiline_title()
-                        break
+                        -- if we overshoot, go back a step
+                        if wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) > avail_dimen_h then
+                            fontsize_title = fontsize_title - fontsize_dec_step
+                            build_multiline_title()
+                            break
+                        end
                     end
                 end
             end
@@ -987,6 +994,7 @@ function ListMenuItem:update()
             local title_padding = wtitle:getSize().h
             local wauthors_padding = wmain_width - wright_width - wright_right_padding
 
+            -- enable this to debug "flow mode"
             -- if wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) > avail_dimen_h then
             --     logger.info("BUFFER UNDERRUN")
             --     logger.info("dimen.h ", dimen.h )

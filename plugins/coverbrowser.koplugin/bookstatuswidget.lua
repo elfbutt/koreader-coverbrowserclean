@@ -19,6 +19,7 @@ local TextWidget = require("ui/widget/textwidget")
 local TitleBar = require("ui/widget/titlebar")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
+local logger = require("logger")
 local util = require("util")
 local _ = require("gettext")
 local Screen = Device.screen
@@ -34,13 +35,13 @@ end
 local AltBookStatusWidget = {}
 
 function AltBookStatusWidget:getStatusContent(width)
-    local title_bar = TitleBar:new{
+    local title_bar = TitleBar:new {
         width = width,
         bottom_v_padding = 0,
         close_callback = not self.readonly and function() self:onClose() end,
         show_parent = self,
     }
-    local content = VerticalGroup:new{
+    local content = VerticalGroup:new {
         align = "left",
         title_bar,
         self:genBookInfoGroup(),
@@ -55,19 +56,19 @@ end
 function AltBookStatusWidget:genHeader(title)
     local width, height = Screen:getWidth(), Size.item.height_default
 
-    local header_title = TextWidget:new{
+    local header_title = TextWidget:new {
         text = title,
         face = self.header_font,
         fgcolor = Blitbuffer.COLOR_GRAY_9,
     }
 
-    local padding_span = HorizontalSpan:new{ width = self.padding }
-    local line_width = (width - header_title:getSize().w) / 2  - self.padding * 2
-    local line_container = LeftContainer:new{
-        dimen = Geom:new{ w = line_width, h = height },
-        LineWidget:new{
+    local padding_span = HorizontalSpan:new { width = self.padding }
+    local line_width = (width - header_title:getSize().w) / 2 - self.padding * 2
+    local line_container = LeftContainer:new {
+        dimen = Geom:new { w = line_width, h = height },
+        LineWidget:new {
             background = Blitbuffer.COLOR_LIGHT_GRAY,
-            dimen = Geom:new{
+            dimen = Geom:new {
                 w = line_width,
                 h = Size.line.thick,
             }
@@ -75,16 +76,16 @@ function AltBookStatusWidget:genHeader(title)
     }
     local span_top, span_bottom
     if Screen:getScreenMode() == "landscape" then
-        span_top = VerticalSpan:new{ width = Size.span.horizontal_default }
-        span_bottom = VerticalSpan:new{ width = Size.span.horizontal_default }
+        span_top = VerticalSpan:new { width = Size.span.horizontal_default }
+        span_bottom = VerticalSpan:new { width = Size.span.horizontal_default }
     else
-        span_top = VerticalSpan:new{ width = Size.item.height_default }
-        span_bottom = VerticalSpan:new{ width = Size.span.vertical_large }
+        span_top = VerticalSpan:new { width = Size.item.height_default }
+        span_bottom = VerticalSpan:new { width = Size.span.vertical_large }
     end
 
-    return VerticalGroup:new{
+    return VerticalGroup:new {
         span_top,
-        HorizontalGroup:new{
+        HorizontalGroup:new {
             align = "center",
             padding_span,
             line_container,
@@ -132,20 +133,7 @@ function AltBookStatusWidget:genBookInfoGroup()
     local props = self.ui.doc_props
     local lang = props.language
 
-    -- title
-    local book_meta_info_group = VerticalGroup:new{
-        align = "center",
-        VerticalSpan:new{ width = height * 0.2 },
-        TextBoxWidget:new{
-            text = props.display_title,
-            lang = lang,
-            width = width,
-            face = self.large_serif_font,
-            alignment = "center",
-        },
-    }
-
-    -- author(s)
+    -- author(s) text
     local author_text = ""
     if props.authors then
         local authors = props.authors
@@ -163,7 +151,7 @@ function AltBookStatusWidget:genBookInfoGroup()
         end
     end
 
-    -- series name and position (if available, if requested)
+    -- series text and position (if available, if requested)
     local series_mode = BookInfoManager:getSetting("series_mode")
     -- suppress showing series information if position in series is "0"
     local show_series = props.series and props.series_index and props.series_index ~= 0
@@ -188,30 +176,19 @@ function AltBookStatusWidget:genBookInfoGroup()
         end
     end
 
-    local bookinfo = TextBoxWidget:new{
-        text =  author_text,
+    -- author(s) and series combined box
+    local bookinfo = TextBoxWidget:new {
+        text = author_text,
         lang = lang,
         face = self.small_serif_font,
         width = width,
         alignment = "center",
         fgcolor = Blitbuffer.COLOR_GRAY_2
     }
-    table.insert(book_meta_info_group,
-        CenterContainer:new{
-            dimen = Geom:new{ w = width, h = bookinfo:getSize().h },
-            bookinfo
-        }
-    )
-
-    if Screen:getScreenMode() == "landscape" then
-        table.insert(book_meta_info_group, VerticalSpan:new{ width = Screen:scaleBySize(50) })
-    else
-        table.insert(book_meta_info_group, VerticalSpan:new{ width = Screen:scaleBySize(90) })
-    end
 
     -- progress bar
     local read_percentage = self.ui:getCurrentPage() / self.total_pages
-    local progress_bar = ProgressWidget:new{
+    local progress_bar = ProgressWidget:new {
         width = math.floor(width * 0.7),
         height = Screen:scaleBySize(18),
         percentage = read_percentage,
@@ -222,56 +199,88 @@ function AltBookStatusWidget:genBookInfoGroup()
         bgcolor = Blitbuffer.COLOR_GRAY_E,
         fillcolor = Blitbuffer.COLOR_GRAY_6,
     }
+
+    -- progress text
+    local progress_text = TextWidget:new {
+        text = T(_("%1% Read"),
+            string.format("%1.f", read_percentage * 100)),
+        face = self.small_serif_font,
+    }
+
+    -- title box (done last to calculate the max available height)
+    local max_title_height = height - bookinfo:getSize().h - progress_bar:getSize().h - progress_text:getSize().h - Size.padding.default
+    local booktitle = TextBoxWidget:new {
+        text = props.display_title,
+        lang = lang,
+        width = width,
+        height = max_title_height,
+        height_adjust = true,
+        height_overflow_show_ellipsis = true,
+        face = self.large_serif_font,
+        alignment = "center",
+    }
+
+    -- padding
+    local meta_padding_height = math.max(Size.padding.default, height - booktitle:getSize().h - bookinfo:getSize().h - progress_bar:getSize().h - progress_text:getSize().h)
+    local meta_padding = VerticalSpan:new { width = meta_padding_height }
+    logger.info("meta_padding ", meta_padding)
+
+    -- build metadata column (adjacent to cover)
+    local book_meta_info_group = VerticalGroup:new {
+        align = "center",
+    }
+    table.insert(book_meta_info_group, booktitle)
     table.insert(book_meta_info_group,
-        CenterContainer:new{
-            dimen = Geom:new{ w = width, h = progress_bar:getSize().h },
+        CenterContainer:new {
+            dimen = Geom:new { w = width, h = bookinfo:getSize().h },
+            bookinfo
+        }
+    )
+    table.insert(book_meta_info_group, meta_padding)
+    table.insert(book_meta_info_group,
+        CenterContainer:new {
+            dimen = Geom:new { w = width, h = progress_bar:getSize().h },
             progress_bar
         }
     )
-    -- complete text
-    local text_complete = TextWidget:new{
-        text = T(_("%1% Read"),
-                        string.format("%1.f", read_percentage * 100)),
-        face = self.small_serif_font,
-    }
     table.insert(book_meta_info_group,
-        CenterContainer:new{
-            dimen = Geom:new{ w = width, h = text_complete:getSize().h },
-            text_complete
+        CenterContainer:new {
+            dimen = Geom:new { w = width, h = progress_text:getSize().h },
+            progress_text
         }
     )
 
-    -- build the final group
-    local book_info_group = HorizontalGroup:new{
+    -- assemble the final row w/ cover and metadata [X|Y]
+    local book_info_group = HorizontalGroup:new {
         align = "top",
-        HorizontalSpan:new{ width =  split_span_width }
+        HorizontalSpan:new { width = split_span_width }
     }
-    -- thumbnail
+    -- cover column
     local thumbnail = FileManagerBookInfo:getCoverImage(self.ui.document)
     if thumbnail then
         -- Much like BookInfoManager, honor AR here
         local cbb_w, cbb_h = thumbnail:getWidth(), thumbnail:getHeight()
         if cbb_w > img_width or cbb_h > img_height then
             local scale_factor = math.min(img_width / cbb_w, img_height / cbb_h)
-            cbb_w = math.min(math.floor(cbb_w * scale_factor)+1, img_width)
-            cbb_h = math.min(math.floor(cbb_h * scale_factor)+1, img_height)
+            cbb_w = math.min(math.floor(cbb_w * scale_factor) + 1, img_width)
+            cbb_h = math.min(math.floor(cbb_h * scale_factor) + 1, img_height)
             thumbnail = RenderImage:scaleBlitBuffer(thumbnail, cbb_w, cbb_h, true)
         end
 
-        table.insert(book_info_group, ImageWidget:new{
+        table.insert(book_info_group, ImageWidget:new {
             image = thumbnail,
             width = cbb_w,
             height = cbb_h,
         })
     end
-
-    table.insert(book_info_group, CenterContainer:new{
-        dimen = Geom:new{ w = width, h = height },
+    -- metadata column
+    table.insert(book_info_group, CenterContainer:new {
+        dimen = Geom:new { w = width, h = height },
         book_meta_info_group,
     })
 
-    return CenterContainer:new{
-        dimen = Geom:new{ w = screen_width, h = img_height },
+    return CenterContainer:new {
+        dimen = Geom:new { w = screen_width, h = img_height },
         book_info_group,
     }
 end
@@ -292,7 +301,7 @@ function AltBookStatusWidget:genSummaryGroup(width)
     else
         html_contents = "<html><body><h2 style='font-style: italic; color: #CCCCCC;'>No description.</h3></body></html>"
     end
-    self.input_note = ScrollHtmlWidget:new{
+    self.input_note = ScrollHtmlWidget:new {
         width = width - Screen:scaleBySize(60),
         height = height,
         css = [[
@@ -322,12 +331,12 @@ function AltBookStatusWidget:genSummaryGroup(width)
         scroll_bar_width = Screen:scaleBySize(10),
         dialog = self,
     }
-    table.insert(self.layout, {self.input_note})
+    table.insert(self.layout, { self.input_note })
 
-    return VerticalGroup:new{
-        VerticalSpan:new{ width = Size.span.vertical_large },
-        CenterContainer:new{
-            dimen = Geom:new{ w = width, h = height },
+    return VerticalGroup:new {
+        VerticalSpan:new { width = Size.span.vertical_large },
+        CenterContainer:new {
+            dimen = Geom:new { w = width, h = height },
             self.input_note
         }
     }

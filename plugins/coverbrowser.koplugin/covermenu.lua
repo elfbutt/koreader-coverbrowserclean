@@ -662,7 +662,7 @@ function CoverMenu:updateTitleBarPath(path)
             left2_icon = "favorites",
             left2_icon_size_ratio = 1,
             left2_icon_tap_callback = function() FileManager.instance.collections:onShowColl() end,
-            left2_icon_hold_callback = function() FileManager.instance.folder_shortcuts:onShowFolderShortcutsDialog() end,
+            -- left2_icon_hold_callback = function() FileManager.instance.folder_shortcuts:onShowFolderShortcutsDialog() end,
             -- history
             left3_icon = "history",
             left3_icon_size_ratio = 1,

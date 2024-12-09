@@ -381,7 +381,7 @@ function ListMenuItem:update()
             end
         end
 
-        if bookinfo then -- This book is known
+        if bookinfo and is_pathchooser == false then -- This book is known (and not in patchooser mode)
             self.bookinfo_found = true
             local cover_bb_used = false
 
@@ -419,7 +419,7 @@ function ListMenuItem:update()
                     self.menu._has_cover_images = true
                     self._has_cover_image = true
                 -- add generic file icons, but not in pathchooser
-                elseif is_pathchooser == false then
+                else
                     -- use generic file icon insteaed of cover image
                     wleft_height = dimen.h
                     wleft_width = wleft_height -- make it squared
@@ -521,8 +521,7 @@ function ListMenuItem:update()
             local est_page_count = bookinfo.pages or nil
             if est_page_count and
                         not BookInfoManager:getSetting("hide_page_info") and
-                        not BookInfoManager:getSetting("show_pages_read_as_progress") and
-                        is_pathchooser == false then
+                        not BookInfoManager:getSetting("show_pages_read_as_progress") then
                 local progressbar_items = { align = "center" }
 
                 local fn_pages = tonumber(est_page_count)
@@ -648,79 +647,69 @@ function ListMenuItem:update()
             end
 
             -- show progress text, page text, and/or file info text
-            if is_pathchooser == false then
-                if status == "complete" then
-                    progress_str = finished_text
-                elseif status == "abandoned" then
-                    progress_str = abandoned_string
-                elseif percent_finished then
-                    progress_str = ""
-                    percent_str = math.floor(100 * percent_finished) .. "% " .. read_text
-                    if pages then
-                        if BookInfoManager:getSetting("show_pages_read_as_progress") then
-                            pages_str = T(_("Page %1 of %2"), Math.round(percent_finished * pages), pages)
-                        end
-                        if BookInfoManager:getSetting("show_pages_left_in_progress") then
-                            pages_left_str = T(_("%1 pages left"), Math.round(pages - percent_finished * pages), pages)
-                        end
-                    end
-                elseif not bookinfo._no_provider then
-                    progress_str = unread_text
-                end
-
-                if not BookInfoManager:getSetting("hide_page_info") then
-                    if progress_str ~= "" then
-                        local wprogressinfo = TextWidget:new {
-                            text = progress_str,
-                            face = wright_font_face,
-                            fgcolor = fgcolor,
-                            padding = 0,
-                        }
-                        table.insert(wright_items, 1, wprogressinfo)
-                    end
+            if status == "complete" then
+                progress_str = finished_text
+            elseif status == "abandoned" then
+                progress_str = abandoned_string
+            elseif percent_finished then
+                progress_str = ""
+                percent_str = math.floor(100 * percent_finished) .. "% " .. read_text
+                if pages then
                     if BookInfoManager:getSetting("show_pages_read_as_progress") then
-                        if pages_str ~= "" then
-                            local wpageinfo = TextWidget:new {
-                                text = pages_str,
-                                face = wright_font_face,
-                                fgcolor = fgcolor,
-                                padding = 0,
-                            }
-                            table.insert(wright_items, 1, wpageinfo)
-                        end
-                    else
-                        if percent_str ~= "" then
-                            local wpercentinfo = TextWidget:new {
-                                text = percent_str,
-                                face = wright_font_face,
-                                fgcolor = fgcolor,
-                                padding = 0,
-                            }
-                            table.insert(wright_items, 1, wpercentinfo)
-                        end
+                        pages_str = T(_("Page %1 of %2"), Math.round(percent_finished * pages), pages)
                     end
                     if BookInfoManager:getSetting("show_pages_left_in_progress") then
-                        if pages_left_str ~= "" then
-                            local wpagesleftinfo = TextWidget:new {
-                                text = pages_left_str,
-                                face = wright_font_face,
-                                fgcolor = fgcolor,
-                                padding = 0,
-                            }
-                            table.insert(wright_items, 1, wpagesleftinfo)
-                        end
+                        pages_left_str = T(_("%1 pages left"), Math.round(pages - percent_finished * pages), pages)
                     end
                 end
-                if not BookInfoManager:getSetting("hide_file_info") then
-                    local wfileinfo = TextWidget:new {
-                        text = fileinfo_str,
+            elseif not bookinfo._no_provider then
+                progress_str = unread_text
+            end
+
+            if not BookInfoManager:getSetting("hide_page_info") then
+                if progress_str ~= "" then
+                    local wprogressinfo = TextWidget:new {
+                        text = progress_str,
                         face = wright_font_face,
                         fgcolor = fgcolor,
                         padding = 0,
                     }
-                    table.insert(wright_items, 1, wfileinfo)
+                    table.insert(wright_items, 1, wprogressinfo)
                 end
-            else
+                if BookInfoManager:getSetting("show_pages_read_as_progress") then
+                    if pages_str ~= "" then
+                        local wpageinfo = TextWidget:new {
+                            text = pages_str,
+                            face = wright_font_face,
+                            fgcolor = fgcolor,
+                            padding = 0,
+                        }
+                        table.insert(wright_items, 1, wpageinfo)
+                    end
+                else
+                    if percent_str ~= "" then
+                        local wpercentinfo = TextWidget:new {
+                            text = percent_str,
+                            face = wright_font_face,
+                            fgcolor = fgcolor,
+                            padding = 0,
+                        }
+                        table.insert(wright_items, 1, wpercentinfo)
+                    end
+                end
+                if BookInfoManager:getSetting("show_pages_left_in_progress") then
+                    if pages_left_str ~= "" then
+                        local wpagesleftinfo = TextWidget:new {
+                            text = pages_left_str,
+                            face = wright_font_face,
+                            fgcolor = fgcolor,
+                            padding = 0,
+                        }
+                        table.insert(wright_items, 1, wpagesleftinfo)
+                    end
+                end
+            end
+            if not BookInfoManager:getSetting("hide_file_info") then
                 local wfileinfo = TextWidget:new {
                     text = fileinfo_str,
                     face = wright_font_face,
@@ -740,7 +729,7 @@ function ListMenuItem:update()
 
             -- Build the middle main widget, in the space available
             local wmain_left_padding = Screen:scaleBySize(10)
-            if self.do_cover_image and is_pathchooser == false then
+            if self.do_cover_image then
                 -- we need less padding, as cover image, most often in
                 -- portrait mode, will provide some padding
                 wmain_left_padding = Screen:scaleBySize(5)
@@ -831,12 +820,6 @@ function ListMenuItem:update()
                 if bookinfo.unsupported or bookinfo._no_provider or not bookinfo.authors then
                     fontname_title = good_serif
                     bold_title = true
-                end
-
-                -- use this style for pathchooser mode when no metadata (all files, even things like txt files)
-                if is_pathchooser and not bookinfo.authors then
-                    fontname_title = good_sans
-                    bold_title = false
                 end
 
                 wtitle = TextWidget:new {
@@ -1015,18 +998,10 @@ function ListMenuItem:update()
             -- end
 
             -- style files differently in pathchooser
-            local wtitle_container
-            if is_pathchooser == true and not bookinfo.authors then
-                wtitle_container = LeftContainer:new {
-                    dimen = Geom:new { w = wmain_width, h = dimen.h },
-                    wtitle,
-                }
-            else
-                wtitle_container = TopContainer:new {
-                    dimen = Geom:new { w = wmain_width - wright_width - wright_right_padding, h = wtitle:getSize().h },
-                    wtitle,
-                }
-            end
+            local wtitle_container = TopContainer:new {
+                dimen = Geom:new { w = wmain_width - wright_width - wright_right_padding, h = wtitle:getSize().h },
+                wtitle,
+            }
 
             -- build the main widget which holds wtitle, wauthors, and wright
             local wmain = LeftContainer:new {
@@ -1089,6 +1064,58 @@ function ListMenuItem:update()
                 dimen = dimen:copy(),
                 wmain
             })
+        elseif is_pathchooser == true then -- pathchooser mode
+            local wright
+            local wright_width = 0
+            local wright_items = { align = "right" }
+            local pad_width = Screen:scaleBySize(10) -- on the left, in between, and on the right
+
+            local wmandatory = TextWidget:new{
+                text = self.mandatory or "",
+                face = wright_font_face,
+            }
+            table.insert(wright_items, wmandatory)
+
+            if #wright_items > 0 then
+                for i, w in ipairs(wright_items) do
+                    wright_width = math.max(wright_width, w:getSize().w)
+                end
+                wright = CenterContainer:new {
+                    dimen = Geom:new { w = wright_width, h = dimen.h },
+                    VerticalGroup:new(wright_items),
+                }
+            end
+
+            local wleft_width = dimen.w - dimen.h - wright_width - 3 * pad_width
+            local wlefttext = BD.filename(self.text)
+            local filefont = good_sans
+            local wleft = TextBoxWidget:new {
+                text = wlefttext,
+                face = Font:getFace(filefont, title_font_size),
+                width = wleft_width,
+                alignment = "left",
+                bold = false,
+                height = dimen.h,
+                height_adjust = true,
+                height_overflow_show_ellipsis = true,
+            }
+
+            widget = OverlapGroup:new {
+                LeftContainer:new {
+                    dimen = dimen:copy(),
+                    HorizontalGroup:new {
+                        HorizontalSpan:new { width = Screen:scaleBySize(5) },
+                        wleft,
+                    }
+                },
+                RightContainer:new {
+                    dimen = dimen:copy(),
+                    HorizontalGroup:new {
+                        wright,
+                        HorizontalSpan:new { width = pad_width },
+                    },
+                },
+            }
         else -- bookinfo not found
             if self.init_done then
                 -- Non-initial update(), but our widget is still not found:

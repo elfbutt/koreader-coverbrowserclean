@@ -227,24 +227,6 @@ function TitleBar:init()
         end
     end
 
-    -- self.subtitle_widget = nil
-    -- if self.subtitle then
-    --     if self.subtitle_multilines then
-    --         self.subtitle_widget = TextBoxWidget:new{
-    --             text = "",
-    --             face = self.subtitle_face,
-    --         }
-    --     else
-    --         self.subtitle_widget = TextWidget:new{
-    --             text = "",
-    --             face = self.subtitle_face,
-    --         }
-    --     end
-    -- end
-    -- To debug vertical positionning:
-    -- local FrameContainer = require("ui/widget/container/framecontainer")
-    -- self.title_widget = FrameContainer:new{ padding=0, margin=0, bordersize=1, self.title_widget}
-
     self.title_group = VerticalGroup:new{
         align = self.align,
         overlap_align = self.align,
@@ -261,37 +243,7 @@ function TitleBar:init()
         table.insert(self.title_group, self.title_widget)
     end
 
-    -- if self.subtitle_widget then
-    --     --table.insert(self.title_group, VerticalSpan:new{width = 0})
-    --     if self.align == "left" then
-    --         self.inner_subtitle_group = HorizontalGroup:new{
-    --             HorizontalSpan:new{ width = 0 },
-    --             self.subtitle_widget,
-    --         }
-    --         table.insert(self.title_group, self.inner_subtitle_group)
-    --     else
-    --         table.insert(self.title_group, self.subtitle_widget)
-    --     end
-    -- end
-    -- table.insert(self, self.title_group)
-
-    -- This TitleBar widget is an OverlapGroup: all sub elements overlap,
-    -- and can overflow or underflow. Its height for its containers is
-    -- the one we set as self.dimen.h.
-
     self.titlebar_height = self.title_group:getSize().h -- - self.subtitle_widget:getSize().h
-
-    -- if self.title_shrink_font_to_fit then
-    --     -- Use, or store, the first title_group height we have computed,
-    --     -- so the TitleBar geometry and the bottom line position stay stable
-    --     -- (face height may have changed, even after we kept the baseline
-    --     -- stable, as we did above).
-    --     if self._initial_titlebar_height then
-    --         self.titlebar_height = self._initial_titlebar_height
-    --     else
-    --         self._initial_titlebar_height = self.titlebar_height
-    --     end
-    -- end
 
     if self.with_bottom_line then
         -- Be sure we add between the text and the line at least as much padding
@@ -560,19 +512,8 @@ function TitleBar:setTitle(title, no_refresh)
 end
 
 function TitleBar:setSubTitle(subtitle, no_refresh)
-    -- if self.subtitle_widget and not self.subtitle_multilines then -- no TextBoxWidget:setText() available
-    --     if string.match(subtitle, "/")  then
-    --         subtitle = subtitle:gsub("/", ": ")
-    --     end
-    --     self.subtitle_widget:setText(subtitle)
-    --     if self.inner_subtitle_group then
-    --         self.inner_subtitle_group:resetLayout()
-    --     end
-    --     self.title_group:resetLayout()
-    --     if not no_refresh then
-    --         UIManager:setDirty(self.show_parent, "ui", self.dimen)
-    --     end
-    -- end
+    -- We dont need the original function
+    -- We dont use that title bar and we dont use the subtitle
 end
 
 function TitleBar:setLeftIcon(icon)

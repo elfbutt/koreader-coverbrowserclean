@@ -3,6 +3,8 @@ local Blitbuffer = require("ffi/blitbuffer")
 local BottomContainer = require("ui/widget/container/bottomcontainer")
 local ButtonDialog = require("ui/widget/buttondialog")
 local DocSettings = require("docsettings")
+local DocumentRegistry = require("document/documentregistry")
+local FileChooser = require("ui/widget/filechooser")
 local Geom = require("ui/geometry")
 local InfoMessage = require("ui/widget/infomessage")
 local LeftContainer = require("ui/widget/container/leftcontainer")
@@ -629,18 +631,12 @@ local function onFolderUp()
 end
 
 function CoverMenu:updateTitleBarPath(path)
-    -- We dont need the original updateTitleBarPath
+    -- We dont need the original function
     -- We dont use that title bar and we dont use the subtitle
-    -- CoverMenu:_FileManager_updateTitleBarPath_orig(path)
+end
 
-    -- As ugly as it seems from the name,
-    -- this is the best point to check if we have our new title bar
-    -- and generate it if we do not
-
-    -- filemanager.lua forces this by creating the filechooser right after
-    -- creating the original title bar
-    -- This function call is the only thing in between
-    -- And we want the new title bar to be ready for that filechooser
+function CoverMenu:setupLayout()
+    CoverMenu._FileManager_setupLayout_orig(self)
 
     if self.title_bar.title == "KOReader" then
         self.title_bar = TitleBar:new{
@@ -696,13 +692,26 @@ function CoverMenu:updateTitleBarPath(path)
             end,
         }
     end
-end
 
-function CoverMenu:setupLayout()
-    CoverMenu._FileManager_setupLayout_orig(self)
+    local file_chooser = FileChooser:new{
+        path = self.root_path,
+        focused_path = self.focused_file,
+        show_parent = self.show_parent,
+        height = Screen:getHeight(),
+        is_popout = false,
+        is_borderless = true,
+        file_filter = function(filename) return DocumentRegistry:hasProvider(filename) end,
+        close_callback = function() return self:onClose() end,
+        -- allow left bottom tap gesture, otherwise it is eaten by hidden return button
+        return_arrow_propagation = true,
+        -- allow Menu widget to delegate handling of some gestures to GestureManager
+        filemanager = self,
+        -- Tell FileChooser (i.e., Menu) to use our own title bar instead of Menu's default one
+        custom_title_bar = self.title_bar,
+    }
+    self.file_chooser = file_chooser
 
     self.layout = VerticalGroup:new{
-        -- self.title_bar,
         self.file_chooser,
     }
 
